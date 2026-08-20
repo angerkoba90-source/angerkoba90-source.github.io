@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<base href="/">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#090b0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DenisFit">
+<meta name="description" content="DenisFit — тренировки, прогресс, питание и связь с тренером">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="https://dlaiacatpcgbzmumtggw.supabase.co/functions/v1/denisfit-app/icon-192.png">
+<link rel="stylesheet" href="https://dlaiacatpcgbzmumtggw.supabase.co/functions/v1/denisfit-app/styles.css?v=17.1">
+<title>DenisFit</title>
+<meta name="application-name" content="DenisFit">
+</head>
+<body>
+<div id="auth" class="auth-wrap auth-v13">
+  <section class="auth-stage">
+    <img class="auth-stage-photo" src="https://dlaiacatpcgbzmumtggw.supabase.co/functions/v1/denisfit-app/hero-main.jpg" alt="Тренировка DenisFit">
+    <div class="auth-stage-shade"></div>
+    <div class="brand-xl auth-stage-brand">Denis<span>Fit</span></div>
+    <div class="auth-stage-copy">
+      <h1 class="auth-title-v13"><span class="hero-line hero-line-first">Тренировки,</span><span class="hero-line"><b>прогресс</b> и</span><span class="hero-line">контроль</span><span class="hero-line">результата</span></h1>
+      <p>Умный подход к тренировкам<br>для сильных результатов.</p>
+    </div>
+    <aside class="coach-card-v13">
+      <div class="coach-photo-v13"><img src="https://dlaiacatpcgbzmumtggw.supabase.co/functions/v1/denisfit-app/hero-coach.png" alt="Денис"></div>
+      <div class="coach-name-v13">Денис</div>
+      <div class="coach-role-v13">Тренер и основатель<br>DenisFit</div>
+    </aside>
+  </section>
+  <section class="auth-panel-v13 auth-panel-v142">
+    <div id="clientAccessLanding" class="client-access-landing">
+      <div class="invite-kicker">DENISFIT ACCESS</div>
+      <h2>Вход клиента</h2>
+      <p class="client-access-lead">Если тренер прислал персональную ссылку — просто открой её. Ты сразу попадёшь в свой кабинет.</p>
+      <form id="clientCodeForm" class="client-code-form">
+        <label class="label" for="clientAccessShortCode">Запасной код доступа</label>
+        <input id="clientAccessShortCode" class="input" autocomplete="one-time-code" autocapitalize="characters" placeholder="DF-7K4PXQ">
+        <button class="btn primary auth-submit-v13" type="submit">Открыть DenisFit <span>→</span></button>
+      </form>
+      <p class="small muted center client-no-registration">Почта, пароль и регистрация не нужны.</p>
+      <button id="openTrainerLogin" class="trainer-entry-link" type="button">Вход тренера</button>
+    </div>
+    <div id="trainerLoginPanel" class="hidden">
+      <div class="invite-kicker">ТРЕНЕР</div>
+      <h2>Вход тренера</h2>
+      <div class="field auth-field-v13">
+        <label class="label">Email</label>
+        <div class="auth-input-wrap-v13"><span class="auth-ico-v13 ico-mail" aria-hidden="true"></span><input id="trainerAuthEmail" class="input" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="Email"></div>
+      </div>
+      <div class="field auth-field-v13 auth-password-wrap-v13">
+        <label class="label">Пароль</label>
+        <div class="auth-input-wrap-v13"><span class="auth-ico-v13 ico-lock" aria-hidden="true"></span><input id="trainerAuthPassword" class="input" type="password" autocomplete="current-password" placeholder="Пароль"></div>
+      </div>
+      <button id="trainerLoginSubmit" class="btn primary auth-submit-v13" type="button">Войти <span>→</span></button>
+      <p id="authHint" class="small muted center auth-hint-v13"></p>
+      <button id="backToClientAccess" class="trainer-entry-link" type="button">← Вход клиента</button>
+    </div>
+  </section>
+</div>
+<div id="app" class="app hidden">
+  <header class="topbar"><div class="brand">Denis<span>Fit</span></div><div id="roleBadge" class="role-badge"></div></header>
+  <main id="main"></main>
+</div>
+<nav id="nav" class="nav hidden"></nav>
+<div id="toast" class="toast hidden"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://dlaiacatpcgbzmumtggw.supabase.co/functions/v1/denisfit-app/app.js?v=17.1"></script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=17.1').catch(()=>{});</script>
+</body>
+</html>
