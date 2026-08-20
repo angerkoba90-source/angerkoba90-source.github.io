@@ -10,15 +10,15 @@
 <meta name="apple-mobile-web-app-title" content="DenisFit">
 <meta name="description" content="DenisFit — тренировки, прогресс, питание и связь с тренером">
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="apple-touch-icon" href="https://dlaiacatpcgbzmumtggw.supabase.co/functions/v1/denisfit-app/icon-192.png">
-<link rel="stylesheet" href="https://dlaiacatpcgbzmumtggw.supabase.co/functions/v1/denisfit-app/styles.css?v=17.1">
+<link rel="apple-touch-icon" href="https://dlaiacatpcgbzmumtggw.supabase.co/storage/v1/object/public/denisfit-web-test/icon-192.png">
 <title>DenisFit</title>
 <meta name="application-name" content="DenisFit">
+<style id="denisfitBootstrapStyle">html,body{margin:0;min-height:100%;background:#090b0a;color:#fff;font-family:Arial,sans-serif}</style>
 </head>
 <body>
 <div id="auth" class="auth-wrap auth-v13">
   <section class="auth-stage">
-    <img class="auth-stage-photo" src="https://dlaiacatpcgbzmumtggw.supabase.co/functions/v1/denisfit-app/hero-main.jpg" alt="Тренировка DenisFit">
+    <img class="auth-stage-photo" src="https://dlaiacatpcgbzmumtggw.supabase.co/storage/v1/object/public/denisfit-web-test/hero-main.jpg?v=1713" alt="Тренировка DenisFit">
     <div class="auth-stage-shade"></div>
     <div class="brand-xl auth-stage-brand">Denis<span>Fit</span></div>
     <div class="auth-stage-copy">
@@ -26,7 +26,7 @@
       <p>Умный подход к тренировкам<br>для сильных результатов.</p>
     </div>
     <aside class="coach-card-v13">
-      <div class="coach-photo-v13"><img src="https://dlaiacatpcgbzmumtggw.supabase.co/functions/v1/denisfit-app/hero-coach.png" alt="Денис"></div>
+      <div class="coach-photo-v13"><img src="https://dlaiacatpcgbzmumtggw.supabase.co/storage/v1/object/public/denisfit-web-test/hero-coach.png?v=1713" alt="Денис"></div>
       <div class="coach-name-v13">Денис</div>
       <div class="coach-role-v13">Тренер и основатель<br>DenisFit</div>
     </aside>
@@ -70,7 +70,39 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="https://dlaiacatpcgbzmumtggw.supabase.co/functions/v1/denisfit-app/app.js?v=17.1"></script>
-<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js?v=17.1').catch(()=>{});</script>
+<script>
+(async()=>{
+  const ASSET_BASE='https://dlaiacatpcgbzmumtggw.supabase.co/functions/v1/denisfit-app';
+  const HERO='https://dlaiacatpcgbzmumtggw.supabase.co/storage/v1/object/public/denisfit-web-test/hero-main.jpg?v=1713';
+  try{
+    if('serviceWorker' in navigator){
+      const regs=await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r=>r.unregister()));
+    }
+    const [cssRes,jsRes]=await Promise.all([
+      fetch(ASSET_BASE+'/styles.css?v=17.1.3',{cache:'no-store'}),
+      fetch(ASSET_BASE+'/app.js?v=17.1.3',{cache:'no-store'})
+    ]);
+    if(!cssRes.ok||!jsRes.ok)throw new Error('Не удалось загрузить DenisFit v17.1');
+    let css=await cssRes.text();
+    css=css.replaceAll("url('./hero-main.jpg')",`url('${HERO}')`);
+    const style=document.createElement('style');
+    style.dataset.denisfit='v17.1.3';
+    style.textContent=css;
+    document.head.appendChild(style);
+    const js=await jsRes.text();
+    const script=document.createElement('script');
+    script.dataset.denisfit='v17.1.3';
+    script.textContent=js+'\n//# sourceURL=denisfit-v17.1.3.js';
+    document.body.appendChild(script);
+  }catch(e){
+    console.error('DenisFit bootstrap error',e);
+    const box=document.createElement('div');
+    box.style.cssText='max-width:620px;margin:40px auto;padding:24px;color:white;background:#161a17;border:1px solid #caff32;border-radius:18px;font:16px/1.5 Arial,sans-serif';
+    box.innerHTML='<b>Не удалось загрузить DenisFit</b><p>Обнови страницу ещё раз. Если ошибка останется — пришли скриншот.</p>';
+    document.body.prepend(box);
+  }
+})();
+</script>
 </body>
 </html>
