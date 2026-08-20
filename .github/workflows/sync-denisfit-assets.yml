@@ -1,0 +1,80 @@
+name: Sync DenisFit assets
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/sync-denisfit-assets.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Download DenisFit v17.1 assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://dlaiacatpcgbzmumtggw.supabase.co/functions/v1/denisfit-app'
+          curl -fsSL "$BASE/styles.css?v=17.1" -o styles.css
+          curl -fsSL "$BASE/app.js?v=17.1" -o app.js
+          curl -fsSL "$BASE/hero-main.jpg" -o hero-main.jpg
+          curl -fsSL "$BASE/hero-coach.png" -o hero-coach.png
+          curl -fsSL "$BASE/icon-192.png" -o icon-192.png
+          curl -fsSL "$BASE/icon-512.png" -o icon-512.png
+          curl -fsSL "$BASE/manifest.webmanifest?v=17.1" -o manifest.webmanifest
+          curl -fsSL "$BASE/sw.js?v=17.1" -o sw.js
+          test -s styles.css
+          test -s app.js
+          test -s hero-main.jpg
+          test -s hero-coach.png
+
+      - name: Switch HTML to local assets
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          base = 'https://dlaiacatpcgbzmumtggw.supabase.co/functions/v1/denisfit-app/'
+          replacements = {
+              base + 'icon-192.png': '/icon-192.png?v=17.1.1',
+              base + 'styles.css?v=17.1': '/styles.css?v=17.1.1',
+              base + 'hero-main.jpg': '/hero-main.jpg?v=17.1.1',
+              base + 'hero-coach.png': '/hero-coach.png?v=17.1.1',
+              base + 'app.js?v=17.1': '/app.js?v=17.1.1',
+              "/sw.js?v=17.1": "/sw.js?v=17.1.1",
+          }
+          for old, new in replacements.items():
+              s = s.replace(old, new)
+          p.write_text(s, encoding='utf-8')
+          Path('404.html').write_text(s, encoding='utf-8')
+
+      - name: Verify local frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q '/styles.css?v=17.1.1' index.html
+          grep -q '/app.js?v=17.1.1' index.html
+          ! grep -q 'denisfit-app/styles.css' index.html
+          ! grep -q 'denisfit-app/app.js' index.html
+          grep -q 'angerkoba90-source.github.io' app.js
+
+      - name: Commit synced assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'DenisFit Deploy'
+          git config user.email 'actions@users.noreply.github.com'
+          git add index.html 404.html styles.css app.js hero-main.jpg hero-coach.png icon-192.png icon-512.png manifest.webmanifest sw.js
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+            exit 0
+          fi
+          git commit -m 'Publish DenisFit v17.1 local frontend assets'
+          git push origin HEAD:main
