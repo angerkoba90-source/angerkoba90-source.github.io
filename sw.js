@@ -1,4 +1,4 @@
-const CACHE='denisfit-v18.3.0';
+const CACHE='denisfit-v18.3.1';
 const SHELL=[
   '/',
   '/styles.css?v=18.2.0',
@@ -17,7 +17,8 @@ const SHELL=[
   '/manifest.webmanifest?v=18.2.0',
   '/assets/hero-main.jpg?v=18.2.0',
   '/assets/hero-coach.png?v=18.2.0',
-  '/assets/icon-192.png?v=18.2.0'
+  '/assets/icon-192.png?v=18.2.0',
+  '/workout-journal-v2/week-calendar-v8.css?v=8'
 ];
 
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()))});
@@ -27,6 +28,7 @@ async function injectWorkoutEditor(request){
   const response=await fetch(request,{cache:'no-store'});
   if(!response.ok)return response;
   let html=await response.text();
+  if(!html.includes('week-calendar-v8.css?v=8'))html=html.replace('</head>','<link rel="stylesheet" href="/workout-journal-v2/week-calendar-v8.css?v=8"></head>');
   if(!html.includes('workout-editor-v4.js?v=7'))html=html.replace('</body>','<script src="/workout-journal-v2/workout-editor-v4.js?v=7"></script></body>');
   const headers=new Headers(response.headers);
   headers.delete('content-length');
