@@ -22,13 +22,12 @@ jobs:
           node-version: '22'
       - name: Check JavaScript syntax
         run: |
+          node --check schedule-trainer-v211.js
           node --check trainer-diary-v188.js
           node --check trainer-progress-v190.js
           node --check client-workflow-v191.js
           node --check client-workflow-v192.js
           node --check client-card-v201.js
-          node --check schedule-client-v208.js
-          node --check schedule-template-ui-v210.js
           node --check nutrition-off-v203.js
           node --check client-directions-v205.js
           node --check client-personal-calendar-v207.js
@@ -41,20 +40,22 @@ jobs:
         run: |
           grep -q 'client-directions-v205.js?v=20.5.0' index.html
           grep -q 'client-personal-calendar-v207.js?v=20.7.0' index.html
-          grep -q 'schedule-client-v208.js?v=20.8.0' index.html
-          grep -q 'schedule-template-ui-v210.js?v=20.10.0' index.html
+          grep -q 'schedule-trainer-v211.js?v=20.11.0' index.html
+          test $(grep -n 'schedule-trainer-v211.js' index.html | cut -d: -f1) -lt $(grep -n 'trainer-diary-v188.js' index.html | cut -d: -f1)
+          ! grep -q 'schedule-client-v208.js?v=20.8.0' index.html
+          ! grep -q 'schedule-template-ui-v210.js?v=20.10.0' index.html
           ! grep -q 'schedule-template-remove-v209.js?v=20.9.0' index.html
           ! grep -q 'schedule-client-v202.js?v=20.2.0' index.html
           ! grep -q 'client-calendar-v206.js?v=20.6.0' index.html
           grep -q '#dfdClientProgress{display:none!important}' index.html
-          grep -q '>20.10</div>' index.html
-          grep -q '/sw.js?v=20.10.0' index.html
-          grep -q "denisfit-v20.10.0" sw.js
-          grep -q 'schedule-client-v208.js?v=20.8.0' sw.js
-          grep -q 'schedule-template-ui-v210.js?v=20.10.0' sw.js
-          ! grep -q 'schedule-template-remove-v209.js?v=20.9.0' sw.js
+          grep -q '>20.11</div>' index.html
+          grep -q '/sw.js?v=20.11.0' index.html
+          grep -q "denisfit-v20.11.0" sw.js
+          grep -q 'schedule-trainer-v211.js?v=20.11.0' sw.js
+          ! grep -q 'schedule-client-v208.js?v=20.8.0' sw.js
+          ! grep -q 'schedule-template-ui-v210.js?v=20.10.0' sw.js
           grep -q 'client-personal-calendar-v207.js?v=20.7.0' sw.js
-          grep -q 'release=20.10.0' denisfit-update.html
+          grep -q 'release=20.11.0' denisfit-update.html
       - name: Verify frozen standalone journal
         run: |
           while read -r expected path; do
@@ -68,6 +69,11 @@ jobs:
           CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
           test -n "$CHROME_PATH"
           CHROME_PATH="$CHROME_PATH" node .github/tests/trainer-diary-v188.spec.js
+      - name: Run production-order schedule trainer v211 regression test
+        run: |
+          CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
+          test -n "$CHROME_PATH"
+          CHROME_PATH="$CHROME_PATH" node .github/tests/schedule-trainer-v211.spec.js
       - name: Run client workflow v191 integration test
         run: |
           CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
@@ -80,14 +86,6 @@ jobs:
         run: |
           CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
           CHROME_PATH="$CHROME_PATH" node .github/tests/client-card-v201.spec.js
-      - name: Run schedule template picker v208 integration test
-        run: |
-          CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
-          CHROME_PATH="$CHROME_PATH" node .github/tests/schedule-client-v208.spec.js
-      - name: Run schedule template UI v210 regression test
-        run: |
-          CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
-          CHROME_PATH="$CHROME_PATH" node .github/tests/schedule-template-ui-v210.spec.js
       - name: Run nutrition removal v203 regression test
         run: |
           CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
