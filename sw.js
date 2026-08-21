@@ -1,4 +1,4 @@
-const CACHE='denisfit-v20.3.0';
+const CACHE='denisfit-v20.4.0';
 const SHELL=[
   '/',
   '/styles.css?v=18.2.0',
