@@ -20,6 +20,7 @@ let scheduled=false;
 let busyClient='';
 let busyPrograms=false;
 let nextBusy=false;
+let observerAttached=false;
 
 function toast(text,error=false){
   let el=$('#dfv191Toast');
@@ -179,12 +180,20 @@ async function offerNextBooking(eventId){
 }
 
 function scheduleEnhance(){if(scheduled)return;scheduled=true;setTimeout(()=>{scheduled=false;enhanceClientCard();enhancePrograms()},45)}
+function attachObserver(){
+  if(observerAttached)return;
+  const main=$('#main');if(!main)return;
+  new MutationObserver(scheduleEnhance).observe(main,{childList:true});
+  observerAttached=true;
+  scheduleEnhance();
+}
 document.addEventListener('click',e=>{
   const client=e.target.closest?.('[data-client]');if(client?.dataset.client)rememberClient(client.dataset.client);
   const status=e.target.closest?.('[data-event-status]');if(status){const [id,value]=String(status.dataset.eventStatus||'').split('|');if(id&&value==='completed')setTimeout(()=>offerNextBooking(id),450)}
   if(e.target.closest?.('[data-page="clients"]')||e.target.closest?.('[data-page="programs"]')||e.target.closest?.('#addPackage')||e.target.closest?.('[data-client-template]'))setTimeout(scheduleEnhance,120);
 },true);
-window.addEventListener('load',()=>{const main=$('#main');if(main)new MutationObserver(scheduleEnhance).observe(main,{childList:true});scheduleEnhance()});
-window.addEventListener('pageshow',scheduleEnhance);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attachObserver,{once:true});else attachObserver();
+window.addEventListener('load',attachObserver);
+window.addEventListener('pageshow',()=>{attachObserver();scheduleEnhance()});
 scheduleEnhance();
 })();
