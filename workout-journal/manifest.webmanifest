@@ -1,0 +1,11 @@
+{
+  "name": "Дневник тренировок",
+  "short_name": "Дневник",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#080808",
+  "theme_color": "#080808",
+  "lang": "ru",
+  "description": "Личный дневник тренировок"
+}
