@@ -1,15 +1,17 @@
-const CACHE='denisfit-v17.4.0';
+const CACHE='denisfit-v18.0.0';
 const SHELL=[
   '/',
-  '/styles.css?v=17.4.0',
-  '/enhancements-v174.css?v=17.4.0',
-  '/app.js?v=17.4.0',
-  '/enhancements-v174.js?v=17.4.0',
-  '/vendor/supabase.min.js?v=17.4.0',
-  '/manifest.webmanifest?v=17.4.0',
-  '/assets/hero-main.jpg?v=17.4.0',
-  '/assets/hero-coach.png?v=17.4.0',
-  '/assets/icon-192.png?v=17.4.0'
+  '/styles.css?v=18.0.0',
+  '/enhancements-v174.css?v=18.0.0',
+  '/online-v180.css?v=18.0.0',
+  '/app.js?v=18.0.0',
+  '/enhancements-v174.js?v=18.0.0',
+  '/online-v180.js?v=18.0.0',
+  '/vendor/supabase.min.js?v=18.0.0',
+  '/manifest.webmanifest?v=18.0.0',
+  '/assets/hero-main.jpg?v=18.0.0',
+  '/assets/hero-coach.png?v=18.0.0',
+  '/assets/icon-192.png?v=18.0.0'
 ];
 
 self.addEventListener('install',event=>{
