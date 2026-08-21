@@ -1,0 +1,20 @@
+name: DenisFit Actions smoke
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/denisfit-actions-smoke.yml'
+permissions:
+  contents: write
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          date -u +%FT%TZ > actions-smoke.txt
+          git config user.name 'DenisFit Actions'
+          git config user.email 'angerkoba90@gmail.com'
+          git add actions-smoke.txt
+          git commit -m 'Record Actions smoke check'
+          git push
