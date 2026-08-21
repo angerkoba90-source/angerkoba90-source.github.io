@@ -26,7 +26,7 @@ jobs:
         run: |
           node --check trainer-diary-v188.js
           node --check trainer-progress-v190.js
-          node --check client-card-v190.js
+          node --check client-workflow-v191.js
           node --check program-template-v186.js
           node --check schedule-week-v185.js
           node --check schedule-collapse-v183.js
@@ -36,13 +36,14 @@ jobs:
         run: |
           grep -q 'trainer-diary-v188.js?v=18.8.0' index.html
           grep -q 'trainer-progress-v190.js?v=19.0.0' index.html
-          grep -q 'client-card-v190.js?v=19.0.0' index.html
+          grep -q 'client-workflow-v191.js?v=19.1.0' index.html
+          grep -q 'client-workflow-v191.css?v=19.1.0' index.html
+          ! grep -q 'client-card-v190.js' index.html
           ! grep -q 'client-card-v189.js' index.html
           ! grep -q 'trainer-diary-v187.js' index.html
-          grep -q "denisfit-v19.6.0" sw.js
-          grep -q 'trainer-diary-v188.js?v=18.8.0' sw.js
-          grep -q 'trainer-progress-v190.js?v=19.0.0' sw.js
-          grep -q 'client-card-v190.js?v=19.0.0' sw.js
+          grep -q "denisfit-v19.7.0" sw.js
+          grep -q 'client-workflow-v191.js?v=19.1.0' sw.js
+          grep -q 'client-workflow-v191.css?v=19.1.0' sw.js
 
       - name: Verify frozen standalone journal
         run: |
@@ -60,11 +61,11 @@ jobs:
           test -n "$CHROME_PATH"
           CHROME_PATH="$CHROME_PATH" node .github/tests/trainer-diary-v188.spec.js
 
-      - name: Run client card template removal test
+      - name: Run client workflow v191 integration test
         run: |
           CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
           test -n "$CHROME_PATH"
-          CHROME_PATH="$CHROME_PATH" node .github/tests/client-card-v190.spec.js
+          CHROME_PATH="$CHROME_PATH" node .github/tests/client-workflow-v191.spec.js
 
       - name: Run progression start-state test
         run: |
@@ -76,6 +77,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: denisfit-v190-mobile
+          name: denisfit-v191-mobile
           path: denisfit-v188-mobile.png
           if-no-files-found: ignore
