@@ -1,0 +1,38 @@
+name: Diagnose DenisFit program patch
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/diagnose-program-patch-v173.yml'
+permissions:
+  contents: write
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Diagnose markers
+        shell: bash
+        run: |
+          python - <<'PY' > patch-diagnosis.txt
+          from pathlib import Path
+          import re
+          s=Path('app.js').read_text()
+          checks={
+            'trainerClients boundary': bool(re.search(r"async function trainerClients\(\)\{.*?\n\}\nfunction monthsWithTrainerSince",s,re.S)),
+            'client action grid': '<div class="client-actions-grid"><button id="assignFromClient" class="btn primary big-action">＋ Назначить тренировку</button><button id="addProgramFromClient" class="btn secondary big-action">＋ Добавить программу тренировок</button></div>' in s,
+            'client picker': '<div id="clientProgramPicker" class="card hidden"><b>Выбери программу</b><p class="small muted">Список твоих готовых шаблонов. Нажми — и программа сразу появится у клиента при смешанном ведении.</p>${templateButtons}</div>' in s,
+            'handler regex': bool(re.search(r"\$\('backClients'\)\.onclick=trainerClients;\$\('assignFromClient'\)\.onclick=\(\)=>\{page='schedule';renderNav\(\);trainerSchedule\(localDateKey\(\),id\)\};\$\('addProgramFromClient'\)\.onclick=\(\)=>\{\$\('clientProgramPicker'\)\.classList\.toggle\('hidden'\)\};document\.querySelectorAll\('\[data-client-template\]'\)\.forEach\(b=>b\.onclick=\(\)=>assignTemplate\(b\.dataset\.clientTemplate,id,true\)\);",s,re.S)),
+            'getProgramTemplates marker': 'async function getProgramTemplates(){' in s,
+            'trainerPrograms block': bool(re.search(r"async function trainerPrograms\(\)\{.*?\n\}\n\nfunction newTemplateForm\(ex\)\{.*?\n\}\n\n(?=async function openTemplateEditor)",s,re.S)),
+            'finish template line': "$('finishTemplateEdit').onclick=()=>trainerPrograms();" in s,
+          }
+          for k,v in checks.items(): print(k, 'PASS' if v else 'FAIL')
+          PY
+      - name: Commit diagnosis
+        run: |
+          git config user.name 'DenisFit Diagnostics'
+          git config user.email 'angerkoba90@gmail.com'
+          git add patch-diagnosis.txt
+          git commit -m 'Record program patch diagnosis'
+          git push
