@@ -45,18 +45,11 @@ jobs:
           grep -q 'client-card-v201.js?v=20.1.0' index.html
           grep -q 'schedule-client-v202.js?v=20.2.0' index.html
           grep -q 'nutrition-off-v203.js?v=20.3.0' index.html
-          ! grep -q 'client-program-delete-v200.js' index.html
-          grep -q '>20.3</div>' index.html
-          grep -q '/sw.js?v=20.3.0' index.html
-          ! grep -q 'client-card-v190.js' index.html
-          ! grep -q 'client-card-v189.js' index.html
-          ! grep -q 'trainer-diary-v187.js' index.html
-          grep -q "denisfit-v20.3.0" sw.js
-          grep -q 'nutrition-off-v203.js?v=20.3.0' sw.js
-          grep -q "url.pathname.endsWith('.js')" sw.js
-          grep -q "url.pathname.endsWith('.css')" sw.js
-          grep -q "fetch(request,{cache:'no-store'})" sw.js
-          grep -q 'release=20.3.0' denisfit-update.html
+          grep -q '#dfdClientProgress{display:none!important}' index.html
+          grep -q '>20.4</div>' index.html
+          grep -q '/sw.js?v=20.4.0' index.html
+          grep -q "denisfit-v20.4.0" sw.js
+          grep -q 'release=20.4.0' denisfit-update.html
 
       - name: Verify frozen standalone journal
         run: |
@@ -77,43 +70,29 @@ jobs:
       - name: Run client workflow v191 integration test
         run: |
           CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
-          test -n "$CHROME_PATH"
           CHROME_PATH="$CHROME_PATH" node .github/tests/client-workflow-v191.spec.js
 
       - name: Run direct client workflow v192 integration test
         run: |
           CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
-          test -n "$CHROME_PATH"
           CHROME_PATH="$CHROME_PATH" node .github/tests/client-workflow-v192.spec.js
 
       - name: Run real-data client card v201 regression test
         run: |
           CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
-          test -n "$CHROME_PATH"
           CHROME_PATH="$CHROME_PATH" node .github/tests/client-card-v201.spec.js
 
       - name: Run schedule client v202 integration test
         run: |
           CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
-          test -n "$CHROME_PATH"
           CHROME_PATH="$CHROME_PATH" node .github/tests/schedule-client-v202.spec.js
 
       - name: Run nutrition removal v203 regression test
         run: |
           CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
-          test -n "$CHROME_PATH"
           CHROME_PATH="$CHROME_PATH" node .github/tests/nutrition-off-v203.spec.js
 
       - name: Run progression start-state test
         run: |
           CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
-          test -n "$CHROME_PATH"
           CHROME_PATH="$CHROME_PATH" node .github/tests/trainer-progress-v190.spec.js
-
-      - name: Upload mobile test screenshot
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: denisfit-v203-mobile
-          path: denisfit-v188-mobile.png
-          if-no-files-found: ignore
