@@ -1,0 +1,57 @@
+name: Rebuild DenisFit program menu v17.3.0 fixed
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/rebuild-program-menu-v173-fixed.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Execute corrected patcher
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          src=Path('.github/workflows/rebuild-program-menu-v173.yml').read_text()
+          start=src.index("          python - <<'PY'\n") + len("          python - <<'PY'\n")
+          end=src.index("\n          PY\n", start)
+          code='\n'.join(line[10:] if line.startswith('          ') else line for line in src[start:end].splitlines())
+          code=code.replace("re.subn(pattern,repl,text,count=1,flags=re.S)","re.subn(pattern,lambda _m: repl,text,count=1,flags=re.S)")
+          compile(code,'<denisfit-patch>','exec')
+          exec(code,{'__name__':'__main__'})
+          PY
+
+      - name: Validate JavaScript and requested UX
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check app.js
+          ! grep -q 'История приглашений' app.js
+          ! grep -q 'Резервный способ · добавить по старому коду' app.js
+          grep -q 'id="programCreateTemplate"' app.js
+          grep -q 'id="programShowTemplates"' app.js
+          grep -q 'id="addTemplateFromClient"' app.js
+          grep -q 'id="createClientTemplate"' app.js
+          grep -q 'function openClientOnlyProgramBuilder' app.js
+          grep -q 'не сохранится в общей базе' app.js
+          grep -q 'v=17.3.0' index.html
+          grep -q "denisfit-v17.3.0" sw.js
+
+      - name: Commit production update
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'DenisFit Release'
+          git config user.email 'angerkoba90@gmail.com'
+          git add app.js index.html sw.js
+          git commit -m 'Rebuild program templates UX v17.3.0'
+          git push
