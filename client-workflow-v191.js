@@ -10,11 +10,12 @@ if(!db)return;
 
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
 const money=v=>new Intl.NumberFormat('ru-RU').format(Number(v||0))+' ₽';
 const fmtDate=v=>v?new Date(String(v).length===10?`${v}T12:00:00`:v).toLocaleDateString('ru-RU',{day:'2-digit',month:'short',year:'numeric'}):'—';
 const localDate=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const localTime=d=>`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 let lastClientId='';
 let scheduled=false;
 let busyClient='';
@@ -142,6 +143,15 @@ async function eventContext(eventId,uid){
   if(evQ.error)throw evQ.error;if(partQ.error)throw partQ.error;if(assignQ.error)throw assignQ.error;
   return {event:evQ.data,participants:partQ.data||[],assignments:assignQ.data||[]};
 }
+async function waitForCompletedContext(eventId,uid){
+  let ctx=null;
+  for(let attempt=0;attempt<10;attempt++){
+    ctx=await eventContext(eventId,uid);
+    if(ctx.event?.status==='completed')return ctx;
+    await sleep(Math.min(800,180+attempt*90));
+  }
+  return ctx;
+}
 async function validPackageId(uid,cid,packageId){
   if(!packageId)return null;
   const q=await db.from('client_packages').select('id,total_sessions,used_sessions,status').eq('id',packageId).eq('trainer_id',uid).eq('client_id',cid).maybeSingle();
@@ -168,7 +178,7 @@ async function createNextBooking(ctx,date,time,uid){
 async function offerNextBooking(eventId){
   if(nextBusy||$('#dfv191Modal.open'))return;nextBusy=true;
   try{
-    const u=await currentTrainer();if(!u)return;const ctx=await eventContext(eventId,u.id);if(ctx.event.status!=='completed')return;
+    const u=await currentTrainer();if(!u)return;const ctx=await waitForCompletedContext(eventId,u.id);if(ctx?.event?.status!=='completed')return;
     const oldStart=new Date(ctx.event.starts_at),next=new Date(oldStart);next.setDate(next.getDate()+7);
     let names=[];if(ctx.participants.length){const nq=await db.from('profiles').select('id,full_name').in('id',ctx.participants.map(x=>x.client_id));if(!nq.error)names=(nq.data||[]).map(x=>x.full_name||'Клиент')}
     modal(`<div class="dfv191-modal-head"><div><span>СЛЕДУЮЩАЯ ТРЕНИРОВКА</span><h2>Записать сразу?</h2><p>${esc(names.join(' + ')||`${ctx.participants.length} клиент(а)`)}</p></div><button id="dfv191Close" type="button">×</button></div><div class="dfv191-next-grid"><label>Дата<input id="dfv191NextDate" type="date" value="${localDate(next)}"></label><label>Время<input id="dfv191NextTime" type="time" value="${localTime(oldStart)}"></label></div><div class="small muted dfv191-next-note">По умолчанию — через неделю в то же время. Если старый блок закончился, новая запись создастся без списания из старого блока.</div><div class="dfv191-modal-actions"><button id="dfv191Later" type="button" class="btn secondary">Не сейчас</button><button id="dfv191Book" type="button" class="btn primary">Записать</button></div>`);
@@ -189,7 +199,7 @@ function attachObserver(){
 }
 document.addEventListener('click',e=>{
   const client=e.target.closest?.('[data-client]');if(client?.dataset.client)rememberClient(client.dataset.client);
-  const status=e.target.closest?.('[data-event-status]');if(status){const [id,value]=String(status.dataset.eventStatus||'').split('|');if(id&&value==='completed')setTimeout(()=>offerNextBooking(id),450)}
+  const status=e.target.closest?.('[data-event-status]');if(status){const [id,value]=String(status.dataset.eventStatus||'').split('|');if(id&&value==='completed')setTimeout(()=>offerNextBooking(id),80)}
   if(e.target.closest?.('[data-page="clients"]')||e.target.closest?.('[data-page="programs"]')||e.target.closest?.('#addPackage')||e.target.closest?.('[data-client-template]'))setTimeout(scheduleEnhance,120);
 },true);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attachObserver,{once:true});else attachObserver();
