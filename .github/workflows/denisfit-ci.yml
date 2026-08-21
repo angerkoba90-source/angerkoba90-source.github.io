@@ -32,6 +32,7 @@ jobs:
           node --check schedule-client-v202.js
           node --check nutrition-off-v203.js
           node --check client-directions-v205.js
+          node --check client-calendar-v206.js
           node --check program-template-v186.js
           node --check schedule-week-v185.js
           node --check schedule-collapse-v183.js
@@ -47,12 +48,13 @@ jobs:
           grep -q 'schedule-client-v202.js?v=20.2.0' index.html
           grep -q 'nutrition-off-v203.js?v=20.3.0' index.html
           grep -q 'client-directions-v205.js?v=20.5.0' index.html
+          grep -q 'client-calendar-v206.js?v=20.6.0' index.html
           grep -q '#dfdClientProgress{display:none!important}' index.html
-          grep -q '>20.5</div>' index.html
-          grep -q '/sw.js?v=20.5.0' index.html
-          grep -q "denisfit-v20.5.0" sw.js
-          grep -q 'client-directions-v205.js?v=20.5.0' sw.js
-          grep -q 'release=20.5.0' denisfit-update.html
+          grep -q '>20.6</div>' index.html
+          grep -q '/sw.js?v=20.6.0' index.html
+          grep -q "denisfit-v20.6.0" sw.js
+          grep -q 'client-calendar-v206.js?v=20.6.0' sw.js
+          grep -q 'release=20.6.0' denisfit-update.html
 
       - name: Verify frozen standalone journal
         run: |
@@ -99,6 +101,11 @@ jobs:
         run: |
           CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
           CHROME_PATH="$CHROME_PATH" node .github/tests/client-directions-v205.spec.js
+
+      - name: Run client calendar v206 integration test
+        run: |
+          CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
+          CHROME_PATH="$CHROME_PATH" node .github/tests/client-calendar-v206.spec.js
 
       - name: Run progression start-state test
         run: |
