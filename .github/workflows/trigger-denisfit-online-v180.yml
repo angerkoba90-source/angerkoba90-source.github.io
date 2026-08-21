@@ -1,0 +1,24 @@
+name: Trigger DenisFit online v18
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'trigger-online-v180.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trigger main release workflow
+        run: |
+          echo '# triggered' >> .github/workflows/denisfit-online-v180.yml
+          git config user.name 'DenisFit Release'
+          git config user.email 'angerkoba90@gmail.com'
+          git add .github/workflows/denisfit-online-v180.yml
+          git commit -m 'Trigger DenisFit online v18 release'
+          git push
