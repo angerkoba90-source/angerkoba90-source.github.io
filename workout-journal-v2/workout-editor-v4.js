@@ -1,74 +1,49 @@
 (()=>{
   const style=document.createElement('style');
   style.textContent=`
+  .machine-thumb{width:100%;height:100%;display:block}.machine-thumb-wrap{width:58px!important;height:58px!important;border-radius:14px!important;background:#101216!important;overflow:hidden!important;padding:3px!important;border:1px solid #343941}.db-card{grid-template-columns:58px 1fr auto!important}.exercise-icon.machine-thumb-wrap{width:52px!important;height:52px!important}.tpl-thumbs{display:flex;gap:6px;margin:7px 0 9px;overflow:hidden}.tpl-thumb{width:42px;height:42px;flex:0 0 42px;border-radius:11px;background:#101216;border:1px solid #30353d;padding:2px;overflow:hidden}.thumb-badge{font-size:7px;letter-spacing:.03em}
   .workout-back{align-items:stretch!important;background:#090a0c!important}
   .workout-sheet{position:fixed!important;inset:0!important;width:100%!important;max-width:430px!important;margin:0 auto!important;height:100dvh!important;max-height:none!important;border-radius:0!important;padding:calc(4px + env(safe-area-inset-top)) 7px calc(4px + env(safe-area-inset-bottom))!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;background:#0f1114!important}
-  .workout-head{display:grid;grid-template-columns:34px 1fr 34px;align-items:center;gap:6px;height:38px;flex:0 0 38px;border-bottom:1px solid #25292f}
-  .workout-close{width:32px;height:32px;border:0;border-radius:9px;background:#25292f;color:#fff;font-size:17px}
-  .workout-title{min-width:0;text-align:center}.workout-title b{display:block;font-size:15px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.workout-title span{display:block;font-size:9px;color:#858a92;margin-top:1px}
-  .exercise-list{flex:1;min-height:0;overflow-y:auto;padding:6px 0 8px;scrollbar-width:none}.exercise-list::-webkit-scrollbar{display:none}
-  .exercise-card{background:#181b20;border:1px solid #2c3138;border-radius:13px;margin-bottom:7px;overflow:hidden}
-  .exercise-bar{display:grid;grid-template-columns:23px minmax(0,1fr) auto;gap:6px;align-items:center;min-height:34px;padding:6px 7px;background:#20242a;border-bottom:1px solid #30353d}
-  .exercise-no{width:21px;height:21px;border-radius:7px;background:#ff4b16;color:#fff;display:grid;place-items:center;font-size:10px;font-weight:800}
-  .exercise-bar h3{margin:0;font-size:13px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.exercise-bar span{font-size:8px;color:#858a92;white-space:nowrap}
-  .set-head{display:grid;grid-template-columns:20px 1fr 12px 1fr 28px;gap:4px;align-items:center;height:20px;padding:0 6px;color:#6f747c;font-size:7px;text-align:center}
-  .compact-sets{padding:0 6px}.compact-set{display:grid;grid-template-columns:20px 1fr 12px 1fr 28px;gap:4px;align-items:center;margin:2px 0}.compact-set .set-num{font-size:9px;color:#767b83;text-align:center}.compact-set input{width:100%;min-width:0;height:31px;border:1px solid #343941;background:#0d0f12;color:#fff;border-radius:8px;text-align:center;font-size:13px;padding:0}.compact-set input:focus{border-color:#ff4b16;outline:none}.compact-set .x{color:#686d74;text-align:center;font-size:10px}.compact-set button{width:27px;height:27px;border:0;border-radius:8px;background:#292d33;color:#ff8270;font-size:13px}
-  .compact-add{width:calc(100% - 12px);height:28px;margin:4px 6px 6px;border:1px dashed #3b4048;background:transparent;color:#aeb3ba;border-radius:8px;font-size:10px}
-  .workout-footer{flex:0 0 75px;border-top:1px solid #292d33;padding-top:5px;background:#0f1114}.finish-row{display:grid;grid-template-columns:1fr 1.12fr;gap:6px}.finish-check{display:flex;align-items:center;gap:6px;height:35px;padding:4px 8px;border:1px solid #343941;background:#1b1e23;border-radius:10px;font-size:10px}.finish-check input{width:17px;height:17px;accent-color:#32d74b;margin:0}.finish-btn{height:35px!important;margin:0!important;border-radius:10px!important;font-size:10px!important}.finish-btn:disabled{opacity:.38}.workout-hint{height:17px;line-height:17px;text-align:center;color:#646970;font-size:8px}
-  @media(max-height:700px){.exercise-card{margin-bottom:5px}.exercise-bar{min-height:31px;padding:5px 6px}.compact-set input{height:29px}.compact-add{height:26px;margin-top:3px;margin-bottom:5px}.workout-footer{flex-basis:70px}}
+  .workout-head{display:grid;grid-template-columns:34px 1fr 34px;align-items:center;gap:6px;height:38px;flex:0 0 38px;border-bottom:1px solid #25292f}.workout-close{width:32px;height:32px;border:0;border-radius:9px;background:#25292f;color:#fff;font-size:17px}.workout-title{min-width:0;text-align:center}.workout-title b{display:block;font-size:15px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.workout-title span{display:block;font-size:9px;color:#858a92;margin-top:1px}
+  .exercise-list{flex:1;min-height:0;overflow-y:auto;padding:6px 0 8px;scrollbar-width:none}.exercise-list::-webkit-scrollbar{display:none}.exercise-card{background:#181b20;border:1px solid #2c3138;border-radius:13px;margin-bottom:7px;overflow:hidden}.exercise-bar{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:7px;align-items:center;min-height:48px;padding:5px 7px;background:#20242a;border-bottom:1px solid #30353d}.active-ex-thumb{position:relative;width:40px;height:40px;border-radius:10px;background:#101216;border:1px solid #343941;padding:2px;overflow:hidden}.active-ex-num{position:absolute;left:2px;top:2px;width:15px;height:15px;border-radius:5px;background:#ff4b16;color:#fff;display:grid;place-items:center;font-size:8px;font-weight:800;z-index:2}.exercise-namebox{min-width:0}.exercise-namebox h3{margin:0;font-size:13px;line-height:1.08;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.exercise-namebox small{display:block;margin-top:3px;font-size:8px;color:#7f848c}.exercise-bar>span{font-size:8px;color:#858a92;white-space:nowrap}
+  .set-head{display:grid;grid-template-columns:20px 1fr 12px 1fr 28px;gap:4px;align-items:center;height:20px;padding:0 6px;color:#6f747c;font-size:7px;text-align:center}.compact-sets{padding:0 6px}.compact-set{display:grid;grid-template-columns:20px 1fr 12px 1fr 28px;gap:4px;align-items:center;margin:2px 0}.compact-set .set-num{font-size:9px;color:#767b83;text-align:center}.compact-set input{width:100%;min-width:0;height:31px;border:1px solid #343941;background:#0d0f12;color:#fff;border-radius:8px;text-align:center;font-size:13px;padding:0}.compact-set input:focus{border-color:#ff4b16;outline:none}.compact-set .x{color:#686d74;text-align:center;font-size:10px}.compact-set button{width:27px;height:27px;border:0;border-radius:8px;background:#292d33;color:#ff8270;font-size:13px}.compact-add{width:calc(100% - 12px);height:28px;margin:4px 6px 6px;border:1px dashed #3b4048;background:transparent;color:#aeb3ba;border-radius:8px;font-size:10px}.workout-footer{flex:0 0 75px;border-top:1px solid #292d33;padding-top:5px;background:#0f1114}.finish-row{display:grid;grid-template-columns:1fr 1.12fr;gap:6px}.finish-check{display:flex;align-items:center;gap:6px;height:35px;padding:4px 8px;border:1px solid #343941;background:#1b1e23;border-radius:10px;font-size:10px}.finish-check input{width:17px;height:17px;accent-color:#32d74b;margin:0}.finish-btn{height:35px!important;margin:0!important;border-radius:10px!important;font-size:10px!important}.finish-btn:disabled{opacity:.38}.workout-hint{height:17px;line-height:17px;text-align:center;color:#646970;font-size:8px}
+  @media(max-height:700px){.exercise-card{margin-bottom:5px}.exercise-bar{min-height:44px;padding:4px 6px}.active-ex-thumb{width:36px;height:36px}.exercise-bar{grid-template-columns:38px minmax(0,1fr) auto}.compact-set input{height:29px}.compact-add{height:26px;margin-top:3px;margin-bottom:5px}.workout-footer{flex-basis:70px}}
   `;
   document.head.appendChild(style);
 
+  const esc=s=>String(s||'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]||m));
+  const brandColor=b=>/panatta/i.test(b)?'#ff3b30':/technogym/i.test(b)?'#ffd60a':/matrix/i.test(b)?'#ff7a00':'#ff4b16';
+  const kindOf=name=>{const n=(name||'').toLowerCase();if(/кроссов|crossover|блок|cable|face pull|kickback/.test(n))return'cable';if(/smith|смит|рама|rack/.test(n))return'rack';if(/жим ног|leg press|гак|hack/.test(n))return'legpress';if(/разгибание ног|leg extension/.test(n))return'legext';if(/сгибание ног|leg curl/.test(n))return'legcurl';if(/отведение|приведение|abductor|adductor|rotary hip/.test(n))return'hip';if(/тяга сверху|lat |pulldown|lat machine/.test(n))return'pulldown';if(/row|горизонталь|тяга в упоре|тяга штанги|тяга гантели/.test(n))return'row';if(/chest press|vertical chest|inclined chest|жим от груди|пек-дек|pectoral/.test(n))return'chest';if(/shoulder|deltoid|плеч|армейский/.test(n))return'shoulder';if(/брусь|dip\/chin|assist/.test(n))return'assist';if(/press|пресс|abdominal|crunch/.test(n))return'abs';if(/pullover|пулловер/.test(n))return'pullover';if(/bench|жим лёжа|гантел|штанг|присед|выпад|румын|станов/.test(n))return'free';return'machine'};
+  function machineThumb(name,brand=''){
+    const c=brandColor(brand),k=kindOf(name),muted='#7d838b',metal='#b7bdc5',dark='#252a30';let body='';
+    if(k==='cable')body=`<rect x="10" y="8" width="7" height="33" rx="2"/><rect x="47" y="8" width="7" height="33" rx="2"/><path d="M14 12h36M14 15l15 13M50 15L35 28"/><circle cx="29" cy="29" r="2"/><circle cx="35" cy="29" r="2"/>`;
+    else if(k==='rack')body=`<rect x="12" y="7" width="5" height="38" rx="1"/><rect x="47" y="7" width="5" height="38" rx="1"/><path d="M14 10h36M10 27h44M8 27h48"/><circle cx="9" cy="27" r="4"/><circle cx="55" cy="27" r="4"/>`;
+    else if(k==='legpress')body=`<path d="M13 43L30 14h19L36 43z"/><rect x="30" y="11" width="22" height="6" rx="2"/><path d="M20 39h18M18 44h27"/><circle cx="51" cy="18" r="5"/>`;
+    else if(k==='legext'||k==='legcurl')body=`<rect x="13" y="17" width="13" height="20" rx="3"/><path d="M25 25h20v8H25M18 37v8M44 30v12"/><circle cx="45" cy="42" r="5"/><rect x="48" y="12" width="6" height="28" rx="2"/>`;
+    else if(k==='hip')body=`<rect x="18" y="16" width="18" height="20" rx="4"/><path d="M27 36v9M17 45h21M36 25h9M18 25H9"/><circle cx="46" cy="25" r="4"/><circle cx="8" cy="25" r="4"/><rect x="48" y="10" width="6" height="32" rx="2"/>`;
+    else if(k==='pulldown')body=`<rect x="49" y="8" width="6" height="36" rx="2"/><path d="M52 10H23M22 10l-7 6M22 10l7 6M18 21v7M29 21v7"/><rect x="18" y="31" width="22" height="6" rx="2"/><path d="M23 37v8M36 37v8"/>`;
+    else if(k==='row')body=`<rect x="45" y="11" width="7" height="31" rx="2"/><rect x="12" y="31" width="20" height="7" rx="2"/><path d="M32 34h13M24 31l7-13M31 18h8"/><circle cx="40" cy="18" r="3"/>`;
+    else if(k==='chest')body=`<rect x="20" y="17" width="19" height="23" rx="4"/><path d="M21 24L11 17M38 24l11-7M11 17l-3 10M49 17l3 10M28 40v6M35 40v6"/><rect x="46" y="10" width="7" height="33" rx="2"/>`;
+    else if(k==='shoulder')body=`<rect x="21" y="22" width="18" height="18" rx="4"/><path d="M23 23L16 12M37 23l7-11M16 12l-5-4M44 12l5-4M28 40v6M35 40v6"/><rect x="48" y="10" width="6" height="33" rx="2"/>`;
+    else if(k==='assist')body=`<rect x="13" y="8" width="5" height="37" rx="2"/><rect x="46" y="8" width="5" height="37" rx="2"/><path d="M15 10h34M18 18h10M39 18h10M23 27h18M28 27v13M36 27v13"/>`;
+    else if(k==='abs')body=`<rect x="19" y="20" width="20" height="18" rx="4"/><path d="M24 20l-5-10M34 20l6-9M29 38v7M38 38v7"/><rect x="46" y="12" width="7" height="31" rx="2"/>`;
+    else if(k==='pullover')body=`<rect x="19" y="20" width="20" height="19" rx="4"/><path d="M20 21Q31 6 47 14M47 14v12M29 39v7M38 39v7"/><rect x="48" y="11" width="6" height="32" rx="2"/>`;
+    else if(k==='free')body=`<path d="M12 34h38M18 34v8M44 34v8M16 24h32"/><circle cx="13" cy="24" r="5"/><circle cx="51" cy="24" r="5"/><rect x="23" y="28" width="18" height="5" rx="2"/>`;
+    else body=`<rect x="15" y="14" width="18" height="24" rx="4"/><path d="M28 20h17M44 20v19M24 38v7M33 38v7"/><rect x="48" y="10" width="6" height="34" rx="2"/>`;
+    const badge=brand?`<rect x="5" y="49" width="54" height="10" rx="5" fill="#0c0e11" stroke="${c}" stroke-width="1"/><text x="32" y="56.5" text-anchor="middle" font-size="6" font-weight="800" fill="${c}">${esc(brand).toUpperCase()}</text>`:'';
+    return `<svg class="machine-thumb" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="12" fill="#111419"/><g fill="none" stroke="${metal}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${body}</g><g stroke="${c}" stroke-width="2.2" fill="none"><path d="M8 46h48"/></g>${badge}</svg>`;
+  }
+  window.machineThumb=machineThumb;
+
+  function decorateLibrary(){document.querySelectorAll('#dbList .db-card').forEach(card=>{const name=card.querySelector('h3')?.textContent.trim()||'',brand=card.querySelector('.brand')?.textContent.trim()||'',ico=card.querySelector('.db-ico');if(ico){ico.classList.add('machine-thumb-wrap');ico.innerHTML=machineThumb(name,brand)}})}
+  function decorateProgress(){document.querySelectorAll('#exerciseList .exercise-tile').forEach(card=>{const name=card.querySelector('h3')?.textContent.trim()||'',ico=card.querySelector('.exercise-icon');if(ico){ico.classList.add('machine-thumb-wrap');ico.innerHTML=machineThumb(name,'')}})}
+  function decorateTemplates(){document.querySelectorAll('#templateList .template-card').forEach(card=>{card.querySelector('.tpl-thumbs')?.remove();const names=[...card.querySelectorAll('.chip')].map(x=>x.textContent.trim()).slice(0,5);if(!names.length)return;const strip=document.createElement('div');strip.className='tpl-thumbs';strip.innerHTML=names.map(n=>`<div class="tpl-thumb" title="${esc(n)}">${machineThumb(n,'')}</div>`).join('');card.querySelector('h3')?.after(strip)})}
+  const oldLibrary=window.renderLibrary,oldProgress=window.renderProgress,oldTemplates=window.renderTemplates;
+  if(oldLibrary)window.renderLibrary=function(){oldLibrary();decorateLibrary()};
+  if(oldProgress)window.renderProgress=function(){oldProgress();decorateProgress()};
+  if(oldTemplates)window.renderTemplates=function(){oldTemplates();decorateTemplates()};
+
   const setRow=n=>`<div class="compact-set"><span class="set-num">${n}</span><input inputmode="decimal" placeholder="кг"><span class="x">×</span><input inputmode="numeric" placeholder="повт"><button class="rmset">×</button></div>`;
-
-  window.bindRmCompact=function(scope=document){
-    scope.querySelectorAll('.rmset').forEach(b=>b.onclick=()=>{
-      const card=b.closest('.exercise-card'),sets=card?.querySelector('.compact-sets'),row=b.closest('.compact-set');
-      if(sets&&sets.querySelectorAll('.compact-set').length>1)row.remove();
-      if(sets)[...sets.querySelectorAll('.set-num')].forEach((n,i)=>n.textContent=i+1);
-    });
-  };
-
-  window.openWorkoutEditor=function(event){
-    const names=event.exercises||[];
-    q('#modal').innerHTML=`<div class="modal-back workout-back"><div class="sheet workout-sheet">
-      <div class="workout-head">
-        <button id="cancelWorkout" class="workout-close">←</button>
-        <div class="workout-title"><b>${event.name}</b><span>${new Date(event.date+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'short'})} · ${String(event.hour).padStart(2,'0')}:00</span></div>
-        <div></div>
-      </div>
-      <div class="exercise-list">${names.length?names.map((name,i)=>`<section class="exercise-card exedit" data-name="${name.replace(/"/g,'&quot;')}">
-        <div class="exercise-bar"><div class="exercise-no">${i+1}</div><h3>${name}</h3><span>кг × повт.</span></div>
-        <div class="set-head"><span>№</span><span>ВЕС</span><span></span><span>ПОВТ.</span><span></span></div>
-        <div class="compact-sets">${setRow(1)}${setRow(2)}${setRow(3)}</div>
-        <button class="compact-add addset" type="button">＋ подход</button>
-      </section>`).join(''):`<section class="exercise-card"><div class="exercise-bar"><div class="exercise-no">!</div><h3>Нет упражнений</h3><span></span></div></section>`}</div>
-      <div class="workout-footer">
-        <div class="finish-row">
-          <label class="finish-check"><input id="finishWorkoutCheck" type="checkbox"><span>Закончить ✓</span></label>
-          <button id="saveWorkout" class="btn finish-btn" disabled>Сохранить тренировку</button>
-        </div>
-        <div class="workout-hint">В историю попадёт только завершённая тренировка</div>
-      </div>
-    </div></div>`;
-
-    qa('.addset').forEach(b=>b.onclick=()=>{
-      const card=b.closest('.exercise-card'),sets=card.querySelector('.compact-sets'),n=sets.querySelectorAll('.compact-set').length+1;
-      sets.insertAdjacentHTML('beforeend',setRow(n));
-      bindRmCompact(card);
-      b.scrollIntoView({block:'nearest',behavior:'smooth'});
-    });
-    qa('.exercise-card').forEach(bindRmCompact);
-
-    const check=q('#finishWorkoutCheck'),save=q('#saveWorkout');
-    check.onchange=()=>save.disabled=!check.checked;
-    save.onclick=()=>{
-      if(!check.checked)return;
-      const exercises=qa('.exedit').map(el=>({name:el.dataset.name,sets:[...el.querySelectorAll('.compact-set')].map(r=>{const ins=r.querySelectorAll('input');return{w:+ins[0].value||0,r:+ins[1].value||0}}).filter(s=>s.w||s.r)}));
-      data.workouts.push({id:'w'+Date.now(),date:event.date,name:event.name,note:'',exercises});
-      event.done=true;
-      saveData();saveSchedule();closeModal();renderCalendar();renderHistory();
-    };
-    q('#cancelWorkout').onclick=()=>openScheduled(event.id);
-  };
+  window.bindRmCompact=function(scope=document){scope.querySelectorAll('.rmset').forEach(b=>b.onclick=()=>{const card=b.closest('.exercise-card'),sets=card?.querySelector('.compact-sets'),row=b.closest('.compact-set');if(sets&&sets.querySelectorAll('.compact-set').length>1)row.remove();if(sets)[...sets.querySelectorAll('.set-num')].forEach((n,i)=>n.textContent=i+1)})};
+  window.openWorkoutEditor=function(event){const names=event.exercises||[];q('#modal').innerHTML=`<div class="modal-back workout-back"><div class="sheet workout-sheet"><div class="workout-head"><button id="cancelWorkout" class="workout-close">←</button><div class="workout-title"><b>${event.name}</b><span>${new Date(event.date+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'short'})} · ${String(event.hour).padStart(2,'0')}:00</span></div><div></div></div><div class="exercise-list">${names.length?names.map((name,i)=>`<section class="exercise-card exedit" data-name="${name.replace(/\"/g,'&quot;')}"><div class="exercise-bar"><div class="active-ex-thumb"><span class="active-ex-num">${i+1}</span>${machineThumb(name,'')}</div><div class="exercise-namebox"><h3>${name}</h3><small>рабочие подходы</small></div><span>кг × повт.</span></div><div class="set-head"><span>№</span><span>ВЕС</span><span></span><span>ПОВТ.</span><span></span></div><div class="compact-sets">${setRow(1)}${setRow(2)}${setRow(3)}</div><button class="compact-add addset" type="button">＋ подход</button></section>`).join(''):`<section class="exercise-card"><div class="exercise-bar"><div class="active-ex-thumb">${machineThumb('machine','')}</div><div class="exercise-namebox"><h3>Нет упражнений</h3></div><span></span></div></section>`}</div><div class="workout-footer"><div class="finish-row"><label class="finish-check"><input id="finishWorkoutCheck" type="checkbox"><span>Закончить ✓</span></label><button id="saveWorkout" class="btn finish-btn" disabled>Сохранить тренировку</button></div><div class="workout-hint">В историю попадёт только завершённая тренировка</div></div></div></div>`;qa('.addset').forEach(b=>b.onclick=()=>{const card=b.closest('.exercise-card'),sets=card.querySelector('.compact-sets'),n=sets.querySelectorAll('.compact-set').length+1;sets.insertAdjacentHTML('beforeend',setRow(n));bindRmCompact(card);b.scrollIntoView({block:'nearest',behavior:'smooth'})});qa('.exercise-card').forEach(bindRmCompact);const check=q('#finishWorkoutCheck'),save=q('#saveWorkout');check.onchange=()=>save.disabled=!check.checked;save.onclick=()=>{if(!check.checked)return;const exercises=qa('.exedit').map(el=>({name:el.dataset.name,sets:[...el.querySelectorAll('.compact-set')].map(r=>{const ins=r.querySelectorAll('input');return{w:+ins[0].value||0,r:+ins[1].value||0}}).filter(s=>s.w||s.r)}));data.workouts.push({id:'w'+Date.now(),date:event.date,name:event.name,note:'',exercises});event.done=true;saveData();saveSchedule();closeModal();renderCalendar();renderHistory()};q('#cancelWorkout').onclick=()=>openScheduled(event.id)};
 })();
