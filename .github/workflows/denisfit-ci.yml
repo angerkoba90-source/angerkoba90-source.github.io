@@ -25,6 +25,7 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check trainer-diary-v188.js
+          node --check client-card-v189.js
           node --check program-template-v186.js
           node --check schedule-week-v185.js
           node --check schedule-collapse-v183.js
@@ -33,9 +34,11 @@ jobs:
       - name: Check DenisFit release wiring
         run: |
           grep -q 'trainer-diary-v188.js?v=18.8.0' index.html
+          grep -q 'client-card-v189.js?v=18.9.0' index.html
           ! grep -q 'trainer-diary-v187.js' index.html
-          grep -q "denisfit-v19.4.0" sw.js
+          grep -q "denisfit-v19.5.0" sw.js
           grep -q 'trainer-diary-v188.js?v=18.8.0' sw.js
+          grep -q 'client-card-v189.js?v=18.9.0' sw.js
 
       - name: Verify frozen standalone journal
         run: |
@@ -52,6 +55,12 @@ jobs:
           CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
           test -n "$CHROME_PATH"
           CHROME_PATH="$CHROME_PATH" node .github/tests/trainer-diary-v188.spec.js
+
+      - name: Run client card template and dedupe test
+        run: |
+          CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
+          test -n "$CHROME_PATH"
+          CHROME_PATH="$CHROME_PATH" node .github/tests/client-card-v189.spec.js
 
       - name: Upload mobile test screenshot
         if: always()
