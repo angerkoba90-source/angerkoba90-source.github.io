@@ -1,0 +1,62 @@
+name: DenisFit CI
+
+on:
+  push:
+    branches:
+      - main
+      - denisfit-workout-diary-v188-hardening
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check trainer-diary-v188.js
+          node --check program-template-v186.js
+          node --check schedule-week-v185.js
+          node --check schedule-collapse-v183.js
+          node --check app.js
+
+      - name: Check DenisFit release wiring
+        run: |
+          grep -q 'trainer-diary-v188.js?v=18.8.0' index.html
+          ! grep -q 'trainer-diary-v187.js' index.html
+          grep -q "denisfit-v19.4.0" sw.js
+          grep -q 'trainer-diary-v188.js?v=18.8.0' sw.js
+
+      - name: Verify frozen standalone journal
+        run: |
+          while read -r expected path; do
+            actual=$(git hash-object "$path")
+            test "$actual" = "$expected" || { echo "Frozen journal changed: $path"; exit 1; }
+          done < .github/journal-frozen-shas.txt
+
+      - name: Install browser test dependency
+        run: npm install --no-save playwright-core@1.55.0
+
+      - name: Run mobile trainer diary integration test
+        run: |
+          CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
+          test -n "$CHROME_PATH"
+          CHROME_PATH="$CHROME_PATH" node .github/tests/trainer-diary-v188.spec.js
+
+      - name: Upload mobile test screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: denisfit-v188-mobile
+          path: denisfit-v188-mobile.png
+          if-no-files-found: ignore
