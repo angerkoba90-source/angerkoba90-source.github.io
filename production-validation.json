@@ -1,19 +1,31 @@
 {
   "version": "17.2.0",
-  "checked_at": "2026-08-21T00:29:10.280Z",
-  "status": "fail",
+  "checked_at": "2026-08-21T00:31:37.214Z",
+  "status": "pass",
   "checks": {
     "trainer_landing": {
       "status": "pass",
-      "details": "styled production root and trainer login UI work"
+      "details": "HTTP 200, CSS active, trainer login panel opens"
     },
     "client_join_screen": {
       "status": "pass",
-      "details": "name input visible; label=\"Как к тебе обращаться?\"; email/password hidden"
+      "details": "only client name is requested; trainer email/password hidden"
     },
-    "browser_e2e": {
-      "status": "fail",
-      "details": "dashboard missing: "
+    "client_claim": {
+      "status": "pass",
+      "details": "anonymous auth + claim-invite + client dashboard completed"
+    },
+    "session_persistence": {
+      "status": "pass",
+      "details": "same-browser client session survives full reload"
+    },
+    "service_worker": {
+      "status": "pass",
+      "details": "https://angerkoba90-source.github.io/sw.js?v=17.2.0"
+    },
+    "local_assets": {
+      "status": "pass",
+      "details": "core CSS/JS dependencies are same-origin GitHub Pages assets"
     }
   }
 }
