@@ -1,15 +1,19 @@
 {
   "version": "17.2.0",
-  "checked_at": "2026-08-21T00:27:28.886Z",
+  "checked_at": "2026-08-21T00:29:10.280Z",
   "status": "fail",
   "checks": {
     "trainer_landing": {
       "status": "pass",
-      "details": "HTTP 200; styled UI; trainer login panel opens"
+      "details": "styled production root and trainer login UI work"
+    },
+    "client_join_screen": {
+      "status": "pass",
+      "details": "name input visible; label=\"Как к тебе обращаться?\"; email/password hidden"
     },
     "browser_e2e": {
       "status": "fail",
-      "details": "Name-only join prompt missing"
+      "details": "dashboard missing: "
     }
   }
 }
