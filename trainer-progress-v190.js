@@ -28,10 +28,15 @@ function schedule(){
   queued=true;
   requestAnimationFrame(()=>{queued=false;normalizeProgressRows()});
 }
-window.addEventListener('load',()=>{
+function observe(){
   const main=document.getElementById('main');
-  if(main)new MutationObserver(schedule).observe(main,{childList:true,subtree:true});
+  if(main&&!main.dataset.progressObserverV190){
+    main.dataset.progressObserverV190='1';
+    new MutationObserver(schedule).observe(main,{childList:true,subtree:true});
+  }
   schedule();
-});
-window.addEventListener('pageshow',schedule);
+}
+window.addEventListener('load',observe);
+window.addEventListener('pageshow',observe);
+observe();
 })();
