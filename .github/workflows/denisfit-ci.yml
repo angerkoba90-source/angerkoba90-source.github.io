@@ -47,10 +47,10 @@ jobs:
           ! grep -q 'trainer-diary-v187.js' index.html
           grep -q "denisfit-v19.8.0" sw.js
           grep -q 'client-workflow-v192.js?v=19.8.0' sw.js
-          grep -q 'client-workflow-v191.js?release=19.8.0-20260821' sw.js
           grep -q "url.pathname.endsWith('.js')" sw.js
           grep -q "url.pathname.endsWith('.css')" sw.js
           grep -q "fetch(request,{cache:'no-store'})" sw.js
+          grep -q "denisfitBuild='19.8.1'" client-workflow-v192.js
 
       - name: Verify frozen standalone journal
         run: |
@@ -74,6 +74,12 @@ jobs:
           test -n "$CHROME_PATH"
           CHROME_PATH="$CHROME_PATH" node .github/tests/client-workflow-v191.spec.js
 
+      - name: Run direct client workflow v192 integration test
+        run: |
+          CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
+          test -n "$CHROME_PATH"
+          CHROME_PATH="$CHROME_PATH" node .github/tests/client-workflow-v192.spec.js
+
       - name: Run progression start-state test
         run: |
           CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
@@ -84,6 +90,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: denisfit-v198-mobile
+          name: denisfit-v1981-mobile
           path: denisfit-v188-mobile.png
           if-no-files-found: ignore
