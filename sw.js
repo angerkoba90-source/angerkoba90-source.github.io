@@ -1,4 +1,4 @@
-const CACHE='denisfit-v19.7.0';
+const CACHE='denisfit-v19.8.0';
 const SHELL=[
   '/',
   '/styles.css?v=18.2.0',
@@ -10,7 +10,7 @@ const SHELL=[
   '/schedule-week-v184.css?v=18.4.0',
   '/program-template-v186.css?v=18.6.0',
   '/trainer-diary-v187.css?v=18.7.0',
-  '/client-workflow-v191.css?v=19.1.0',
+  '/client-workflow-v191.css?v=19.8.0',
   '/app.js?v=18.2.0',
   '/enhancements-v174.js?v=18.2.0',
   '/online-v180.js?v=18.2.0',
@@ -20,7 +20,8 @@ const SHELL=[
   '/program-template-v186.js?v=18.6.0',
   '/trainer-diary-v188.js?v=18.8.0',
   '/trainer-progress-v190.js?v=19.0.0',
-  '/client-workflow-v191.js?v=19.1.0',
+  '/client-workflow-v192.js?v=19.8.0',
+  '/client-workflow-v191.js?release=19.8.0-20260821',
   '/schedule-collapse-v183.js?v=18.3.0',
   '/schedule-week-v185.js?v=18.5.0',
   '/vendor/supabase.min.js?v=18.2.0',
@@ -40,6 +41,18 @@ self.addEventListener('activate',event=>{
   )).then(()=>self.clients.claim()));
 });
 
+async function networkFirst(request){
+  try{
+    const response=await fetch(request,{cache:'no-store'});
+    if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(request,copy)).catch(()=>{})}
+    return response;
+  }catch(error){
+    const cached=await caches.match(request);
+    if(cached)return cached;
+    throw error;
+  }
+}
+
 self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET')return;
   const url=new URL(event.request.url);
@@ -51,6 +64,10 @@ self.addEventListener('fetch',event=>{
   }
   if(event.request.mode==='navigate'){
     event.respondWith(fetch(event.request,{cache:'no-store'}).catch(()=>caches.match('/')));
+    return;
+  }
+  if(url.pathname.endsWith('.js')||url.pathname.endsWith('.css')){
+    event.respondWith(networkFirst(event.request));
     return;
   }
   event.respondWith(caches.match(event.request).then(hit=>hit||fetch(event.request).then(response=>{
