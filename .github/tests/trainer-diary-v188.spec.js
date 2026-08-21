@@ -95,7 +95,7 @@ const {chromium}=require('playwright-core');
   if(!(await page.locator('#dfdClientProgress').innerText()).includes('+25%'))throw new Error('Progress percentage not rendered');
 
   await page.click('#assignFromClient');
-  await page.waitForSelector('#dfdModal.open');
+  await page.waitForSelector('#dfdModal.open .dfd-modal-sheet');
   await page.fill('#dfdDate','2026-08-23');
   await page.fill('#dfdTime','19:00');
   await page.click('#dfdAssign');
