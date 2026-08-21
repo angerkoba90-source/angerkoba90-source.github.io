@@ -1,1 +1,15 @@
-{"version":"17.2.0","status":"fail","checked_at":"2026-08-21T00:24:21Z","checks":{"workflow":{"status":"fail","details":"E2E report was not produced"}}}
+{
+  "version": "17.2.0",
+  "checked_at": "2026-08-21T00:27:28.886Z",
+  "status": "fail",
+  "checks": {
+    "trainer_landing": {
+      "status": "pass",
+      "details": "HTTP 200; styled UI; trainer login panel opens"
+    },
+    "browser_e2e": {
+      "status": "fail",
+      "details": "Name-only join prompt missing"
+    }
+  }
+}
