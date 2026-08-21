@@ -1,0 +1,150 @@
+name: Rebuild DenisFit program menu v17.3.0
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/rebuild-program-menu-v173.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch application menus
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          p=Path('app.js')
+          s=p.read_text()
+
+          def sub_once(pattern,repl,text,label):
+              out,n=re.subn(pattern,repl,text,count=1,flags=re.S)
+              if n!=1:
+                  raise SystemExit(f'{label}: expected 1 replacement, got {n}')
+              return out
+
+          trainer_clients = r'''async function trainerClients(){
+  const [clients,templates]=await Promise.all([
+    getTrainerClients(),
+    getProgramTemplates()
+  ]);
+  const templateOptions=`<option value="">Без программы</option>${templates.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('')}`;
+  $('main').innerHTML=`<h1>Клиенты</h1><p class="sub">Только твои активные клиенты.</p><button id="newDenisFitPass" class="btn primary invite-main-button">＋ Пригласить клиента</button><div id="passCreator" class="card pass-creator hidden"><div class="invite-kicker">DENISFIT PASS</div><b>Новый персональный доступ</b><div class="field"><label class="label">Имя клиента</label><input id="passClientName" class="input" placeholder="Например: Марк" autocomplete="off"></div><div class="row"><div class="field"><label class="label">Режим ведения</label><select id="passCoachingMode" class="input"><option value="personal">Персональное</option><option value="mixed" selected>Смешанное</option></select></div><div class="field"><label class="label">Тренировок в неделю</label><input id="passWeeklySessions" class="input" type="number" min="0" max="14" value="2"></div></div><div id="passModeHelp" class="small muted"></div><div class="field"><label class="label">Назначить программу сразу</label><select id="passTemplate" class="input">${templateOptions}</select></div><button id="createPassBtn" class="btn primary">Создать Pass</button></div><div class="client-simple-list">${clients.length?clients.map(x=>`<button class="client-btn client-simple-row ${clientUrgencyClass(x)}" data-client="${x.id}"><div><b>${esc(x.full_name||'Без имени')}</b><div class="small client-balance-line">${esc(clientBalanceText(x))}</div><div class="small muted">${Number(x.weekly_sessions||0)} трен. / неделю</div></div><span>→</span></button>`).join(''):'<div class="empty">Клиентов пока нет.</div>'}</div>`;
+  $('newDenisFitPass').onclick=()=>createTrainerPass();
+  const modeHelp=()=>{$('passModeHelp').textContent=$('passCoachingMode').value==='personal'?'Программу и дневник ведёшь ты. Клиент не заполняет рабочие веса.':'Клиент видит назначенные программы и может сам вносить результаты.'};$('passCoachingMode').onchange=modeHelp;modeHelp();
+  if($('createPassBtn'))$('createPassBtn').onclick=()=>createTrainerPass();
+  document.querySelectorAll('[data-client]').forEach(b=>b.onclick=()=>clientDetail(b.dataset.client,clients.find(x=>x.id===b.dataset.client)));
+}
+function monthsWithTrainerSince'''
+
+          s=sub_once(r"async function trainerClients\(\)\{.*?\n\}\nfunction monthsWithTrainerSince",trainer_clients,s,'trainerClients')
+
+          old_actions='''<div class="client-actions-grid"><button id="assignFromClient" class="btn primary big-action">＋ Назначить тренировку</button><button id="addProgramFromClient" class="btn secondary big-action">＋ Добавить программу тренировок</button></div>'''
+          new_actions='''<div class="client-actions-grid"><button id="assignFromClient" class="btn primary big-action">＋ Назначить тренировку</button><button id="addTemplateFromClient" class="btn secondary big-action">＋ Добавить шаблон</button><button id="createClientTemplate" class="btn secondary big-action">＋ Создать шаблон</button></div>'''
+          if old_actions not in s: raise SystemExit('client action grid marker not found')
+          s=s.replace(old_actions,new_actions,1)
+
+          old_picker='''<div id="clientProgramPicker" class="card hidden"><b>Выбери программу</b><p class="small muted">Список твоих готовых шаблонов. Нажми — и программа сразу появится у клиента при смешанном ведении.</p>${templateButtons}</div>'''
+          new_picker='''<div id="clientProgramPicker" class="card hidden"><b>Добавить шаблон</b><p class="small muted">Твои сохранённые шаблоны. Нажми на нужный — он будет скопирован в программы этого клиента.</p>${templateButtons}</div><div id="clientProgramScratch" class="hidden"></div>'''
+          if old_picker not in s: raise SystemExit('client program picker marker not found')
+          s=s.replace(old_picker,new_picker,1)
+
+          handler_pattern=r"\$\('backClients'\)\.onclick=trainerClients;\$\('assignFromClient'\)\.onclick=\(\)=>\{page='schedule';renderNav\(\);trainerSchedule\(localDateKey\(\),id\)\};\$\('addProgramFromClient'\)\.onclick=\(\)=>\{\$\('clientProgramPicker'\)\.classList\.toggle\('hidden'\)\};document\.querySelectorAll\('\[data-client-template\]'\)\.forEach\(b=>b\.onclick=\(\)=>assignTemplate\(b\.dataset\.clientTemplate,id,true\)\);"
+          handler_repl="""$('backClients').onclick=trainerClients;
+  $('assignFromClient').onclick=()=>{page='schedule';renderNav();trainerSchedule(localDateKey(),id)};
+  $('addTemplateFromClient').onclick=()=>{$('clientProgramScratch').classList.add('hidden');$('clientProgramPicker').classList.toggle('hidden')};
+  $('createClientTemplate').onclick=async()=>{try{$('clientProgramPicker').classList.add('hidden');const ex=await listExercises();openClientOnlyProgramBuilder(id,c,ex)}catch(e){toast(e.message||'Не удалось открыть конструктор',true)}};
+  document.querySelectorAll('[data-client-template]').forEach(b=>b.onclick=()=>assignTemplate(b.dataset.clientTemplate,id,true));"""
+          s=sub_once(handler_pattern,handler_repl,s,'client detail handlers')
+
+          helper=r'''function openClientOnlyProgramBuilder(clientId,c,ex){
+  const target=$('clientProgramScratch');if(!target)return;
+  const draft=[];
+  const cats=['Все',...Array.from(new Set(ex.map(x=>x.category||'Силовые'))).sort((a,b)=>a.localeCompare(b,'ru'))];
+  target.classList.remove('hidden');
+  target.innerHTML=`<div class="card template-editor-card"><div class="invite-kicker">ТОЛЬКО ДЛЯ ЭТОГО КЛИЕНТА</div><b>Создать шаблон</b><p class="small muted">Собери программу из упражнений. Она будет добавлена только ${esc(c.full_name||'этому клиенту')} и не сохранится в общей базе «Шаблоны».</p><div class="field"><label class="label">Название</label><input id="clientDraftName" class="input" placeholder="Например: Ягодицы + плечи"></div><div class="field"><label class="label">Описание</label><input id="clientDraftDesc" class="input" placeholder="Цель, частота, особенности"></div><div class="row"><div class="field"><label class="label">Категория</label><select id="clientDraftCategory" class="input">${cats.map(x=>`<option>${esc(x)}</option>`).join('')}</select></div><div class="field"><label class="label">Поиск</label><input id="clientDraftSearch" class="input" placeholder="Найти упражнение"></div></div><input id="clientDraftExercise" type="hidden"><label class="label">Выбери упражнение</label><div id="clientDraftExerciseGroups"></div><div id="clientDraftSelected" class="selected-exercise hidden"></div><div class="field"><label class="label">День / блок</label><input id="clientDraftDay" class="input" placeholder="Тренировка 1"></div><div class="row"><div class="field"><label class="label">Подходы</label><input id="clientDraftSets" class="input" inputmode="numeric" value="3"></div><div class="field"><label class="label">Повторы / время</label><input id="clientDraftReps" class="input" value="10–12"></div></div><div class="row"><div class="field"><label class="label">Вес, кг</label><input id="clientDraftWeight" class="input" inputmode="decimal"></div><div class="field"><label class="label">RPE</label><input id="clientDraftRpe" class="input" inputmode="decimal" placeholder="8"></div></div><div class="field"><label class="label">Комментарий</label><input id="clientDraftNotes" class="input" placeholder="Темп, техника, амплитуда..."></div><button id="clientDraftAdd" class="btn primary">＋ Добавить упражнение</button><div class="section-title">Упражнения</div><div id="clientDraftList"></div><button id="saveClientDraftProgram" class="btn primary">Сохранить клиенту</button><button id="cancelClientDraftProgram" class="btn secondary">Отмена</button></div>`;
+  let selectedId='';
+  const pick=(id)=>{const x=ex.find(v=>v.id===id);if(!x)return;selectedId=id;$('clientDraftExercise').value=id;$('clientDraftSelected').classList.remove('hidden');$('clientDraftSelected').innerHTML=`<div class="small muted">ВЫБРАНО</div><b>${esc(x.name)}</b><div class="small muted">${esc(exerciseGroup(x))} · ${esc(x.category||'Силовые')} · ${esc(x.equipment||'без оборудования')}</div>`;document.querySelectorAll('[data-client-draft-pick]').forEach(b=>b.classList.toggle('selected',b.dataset.clientDraftPick===id));if(x.category==='MFR'){$('clientDraftSets').value='1';$('clientDraftReps').value='60 сек';$('clientDraftWeight').value='';$('clientDraftRpe').value=''}else if(x.category==='Mobility'){$('clientDraftSets').value='1';$('clientDraftReps').value='10–15 мин';$('clientDraftWeight').value='';$('clientDraftRpe').value=''}};
+  const renderChoices=()=>{const cat=$('clientDraftCategory').value,q=$('clientDraftSearch').value.trim().toLowerCase();const filtered=ex.filter(x=>(cat==='Все'||(x.category||'Силовые')===cat)&&(!q||`${x.name} ${x.muscle_group||''} ${x.equipment||''}`.toLowerCase().includes(q)));const groups=groupExercises(filtered);$('clientDraftExerciseGroups').innerHTML=groups.length?groups.map(([group,rows])=>`<details class="exercise-group compact" ${q?'open':''}><summary><span>${esc(group)}</span><span class="group-count">${rows.length}</span></summary><div class="exercise-choice-list">${rows.map(x=>`<button type="button" class="exercise-choice ${selectedId===x.id?'selected':''}" data-client-draft-pick="${x.id}"><span>${esc(x.name)}</span><small>${esc(x.category||'Силовые')} · ${esc(x.equipment||'без оборудования')}</small></button>`).join('')}</div></details>`).join(''):'<div class="empty">Ничего не найдено.</div>';document.querySelectorAll('[data-client-draft-pick]').forEach(b=>b.onclick=()=>pick(b.dataset.clientDraftPick))};
+  const renderDraft=()=>{$('clientDraftList').innerHTML=draft.length?draft.map((x,idx)=>`<div class="template-exercise-row"><div><b>${idx+1}. ${esc(x.name)}</b><div class="small muted">${esc(x.day_label)} · <b>${x.target_sets} подхода</b> · ${esc(x.target_reps)}${x.target_weight!=null?` · ${x.target_weight} кг`:''}${x.target_rpe!=null?` · RPE ${x.target_rpe}`:''}</div></div><button type="button" class="btn inline danger" data-remove-client-draft="${idx}">Удалить</button></div>`).join(''):'<div class="empty">Добавь первое упражнение.</div>';document.querySelectorAll('[data-remove-client-draft]').forEach(b=>b.onclick=()=>{draft.splice(Number(b.dataset.removeClientDraft),1);renderDraft()})};
+  $('clientDraftCategory').onchange=renderChoices;$('clientDraftSearch').oninput=renderChoices;renderChoices();renderDraft();
+  $('clientDraftAdd').onclick=()=>{if(!selectedId)return toast('Выбери упражнение',true);const x=ex.find(v=>v.id===selectedId),sets=n($('clientDraftSets').value),weight=n($('clientDraftWeight').value),rpe=n($('clientDraftRpe').value);if(!x)return;if(sets==null||!Number.isInteger(sets)||sets<=0)return toast('Подходы должны быть целым числом больше 0',true);if(weight!=null&&!inRange(weight,0))return toast('Вес не может быть отрицательным',true);if(rpe!=null&&!inRange(rpe,1,10))return toast('RPE должен быть от 1 до 10',true);draft.push({exercise_id:selectedId,name:x.name,day_label:$('clientDraftDay').value.trim()||'Тренировка',target_sets:sets,target_reps:$('clientDraftReps').value.trim()||'10–12',target_weight:weight,target_rpe:rpe,notes:$('clientDraftNotes').value.trim()||null});renderDraft();toast('Упражнение добавлено')};
+  $('cancelClientDraftProgram').onclick=()=>{target.classList.add('hidden');target.innerHTML=''};
+  $('saveClientDraftProgram').onclick=async()=>{const name=$('clientDraftName').value.trim();if(!name)return toast('Введите название',true);if(!draft.length)return toast('Добавь хотя бы одно упражнение',true);const created=await sb.from('training_programs').insert({trainer_id:user.id,client_id:clientId,name,description:$('clientDraftDesc').value.trim()||'Индивидуальная программа клиента',active:true}).select('id').single();if(created.error)return toast(created.error.message,true);const rows=draft.map((x,idx)=>({program_id:created.data.id,exercise_id:x.exercise_id,day_label:x.day_label,sort_order:idx+1,target_sets:x.target_sets,target_reps:x.target_reps,target_weight:x.target_weight,target_rpe:x.target_rpe,notes:x.notes}));const q=await sb.from('program_exercises').insert(rows);if(q.error){await sb.from('training_programs').delete().eq('id',created.data.id).eq('trainer_id',user.id);return toast(q.error.message,true)}toast('Шаблон добавлен только этому клиенту');const clients=await getTrainerClients();const fresh=clients.find(x=>x.id===clientId);if(fresh)clientDetail(clientId,fresh)};
+  target.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+'''
+          marker='async function getProgramTemplates(){'
+          if 'function openClientOnlyProgramBuilder(' in s: raise SystemExit('client-only builder already exists')
+          if marker not in s: raise SystemExit('program template marker not found')
+          s=s.replace(marker,helper+marker,1)
+
+          programs_block=r'''async function trainerPrograms(initialView='menu'){
+  const [ex,templates]=await Promise.all([listExercises(),getProgramTemplates()]);
+  const templateCards=templates.length?templates.map(t=>`<div class="card template-card"><div class="list-row"><div><b>${esc(t.name)}</b><div class="small muted">${esc(t.description||'Шаблон программы')}</div></div><span class="pill">${t.template_exercises?.length||0} упр.</span></div><button class="btn secondary" data-edit-template="${t.id}">Открыть шаблон</button><button class="btn danger" data-delete-template="${t.id}">Удалить шаблон</button></div>`).join(''):'<div class="empty">Шаблонов пока нет.</div>';
+  $('main').innerHTML=`<h1>Программы</h1><p class="sub">Здесь только твоя база шаблонов. Назначение клиенту делается из карточки клиента.</p><div class="client-actions-grid"><button id="programCreateTemplate" class="btn primary big-action">＋ Создать шаблон</button><button id="programShowTemplates" class="btn secondary big-action">Шаблоны · ${templates.length}</button></div><div id="templateEditor"></div><div id="templateLibrary" class="hidden"><div class="section-title">Шаблоны</div><div class="template-grid">${templateCards}</div></div>`;
+  const showTemplates=()=>{$('templateEditor').innerHTML='';$('templateLibrary').classList.remove('hidden');$('templateLibrary').scrollIntoView({behavior:'smooth',block:'start'})};
+  $('programCreateTemplate').onclick=()=>{$('templateLibrary').classList.add('hidden');newTemplateForm(ex)};
+  $('programShowTemplates').onclick=showTemplates;
+  document.querySelectorAll('[data-edit-template]').forEach(b=>b.onclick=()=>{$('templateLibrary').classList.add('hidden');openTemplateEditor(b.dataset.editTemplate,ex)});
+  document.querySelectorAll('[data-delete-template]').forEach(b=>b.onclick=async()=>{if(!confirm('Удалить шаблон? Уже назначенные клиентам программы останутся.'))return;const q=await sb.from('program_templates').delete().eq('id',b.dataset.deleteTemplate).eq('trainer_id',user.id);if(q.error)return toast(q.error.message,true);toast('Шаблон удалён');trainerPrograms('templates')});
+  if(initialView==='templates')showTemplates();
+}
+
+function newTemplateForm(ex){
+  $('templateEditor').innerHTML=`<div class="card template-create-card"><div class="invite-kicker">НОВЫЙ ШАБЛОН</div><b>Создать шаблон</b><p class="small muted">Сначала назови шаблон, затем сразу откроется конструктор упражнений.</p><div class="field"><label class="label">Название</label><input id="templateName" class="input" placeholder="Например: Ноги + плечи"></div><div class="field"><label class="label">Описание</label><input id="templateDesc" class="input" placeholder="Для кого и какая цель"></div><button id="createTemplate" class="btn primary">Продолжить к упражнениям</button></div>`;
+  $('templateEditor').scrollIntoView({behavior:'smooth',block:'start'});
+  $('createTemplate').onclick=async()=>{const name=$('templateName').value.trim();if(!name)return toast('Введите название шаблона',true);const q=await sb.from('program_templates').insert({trainer_id:user.id,name,description:$('templateDesc').value.trim()}).select('id').single();if(q.error)return toast(q.error.message,true);openTemplateEditor(q.data.id,ex)};
+}
+
+'''
+          s=sub_once(r"async function trainerPrograms\(\)\{.*?\n\}\n\nfunction newTemplateForm\(ex\)\{.*?\n\}\n\n(?=async function openTemplateEditor)",programs_block,s,'trainerPrograms')
+          s=s.replace("$('finishTemplateEdit').onclick=()=>trainerPrograms();","$('finishTemplateEdit').onclick=()=>trainerPrograms('templates');",1)
+
+          if 'История приглашений' in s: raise SystemExit('invite history text still present')
+          if 'Резервный способ · добавить по старому коду' in s: raise SystemExit('legacy reserve method text still present')
+          if 'id="addProgramFromClient"' in s: raise SystemExit('old client program button still present')
+
+          p.write_text(s)
+
+          for name in ['index.html','sw.js']:
+              q=Path(name)
+              txt=q.read_text().replace('17.2.0','17.3.0')
+              q.write_text(txt)
+          PY
+
+      - name: Validate JavaScript and requested UX
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check app.js
+          ! grep -q 'История приглашений' app.js
+          ! grep -q 'Резервный способ · добавить по старому коду' app.js
+          grep -q 'id="programCreateTemplate"' app.js
+          grep -q 'id="programShowTemplates"' app.js
+          grep -q 'id="addTemplateFromClient"' app.js
+          grep -q 'id="createClientTemplate"' app.js
+          grep -q 'function openClientOnlyProgramBuilder' app.js
+          grep -q 'не сохранится в общей базе' app.js
+          grep -q 'v=17.3.0' index.html
+          grep -q "denisfit-v17.3.0" sw.js
+
+      - name: Commit production update
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'DenisFit Release'
+          git config user.email 'angerkoba90@gmail.com'
+          git add app.js index.html sw.js
+          git commit -m 'Rebuild program templates UX v17.3.0'
+          git push
