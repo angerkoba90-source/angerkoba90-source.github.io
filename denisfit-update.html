@@ -12,7 +12,7 @@ html,body{margin:0;min-height:100%;background:#090b0a;color:#fff;font-family:-ap
 </style>
 </head>
 <body>
-<div class="card"><div class="brand">Denis<span>Fit</span></div><div class="spinner"></div><div id="status" class="status">Удаляю старый кэш и обновляю DenisFit до 20.0…</div><div class="small">Данные клиентов, тренировки и вход не удаляются.</div></div>
+<div class="card"><div class="brand">Denis<span>Fit</span></div><div class="spinner"></div><div id="status" class="status">Удаляю старый кэш и обновляю DenisFit до 20.1…</div><div class="small">Данные клиентов, тренировки и вход не удаляются.</div></div>
 <script>
 (async()=>{
   const status=document.getElementById('status');
@@ -25,13 +25,13 @@ html,body{margin:0;min-height:100%;background:#090b0a;color:#fff;font-family:-ap
       const keys=await caches.keys();
       await Promise.all(keys.filter(k=>k.startsWith('denisfit-v')).map(k=>caches.delete(k)));
     }
-    status.textContent='Готово. Открываю DenisFit 20.0…';
+    status.textContent='Готово. Открываю DenisFit 20.1…';
     await new Promise(r=>setTimeout(r,400));
-    location.replace('/?release=20.0.0&fresh='+Date.now());
+    location.replace('/?release=20.1.0&fresh='+Date.now());
   }catch(e){
     console.error(e);
     status.textContent='Кэш очищен частично. Открываю приложение заново…';
-    setTimeout(()=>location.replace('/?release=20.0.0&fresh='+Date.now()),800);
+    setTimeout(()=>location.replace('/?release=20.1.0&fresh='+Date.now()),800);
   }
 })();
 </script>
