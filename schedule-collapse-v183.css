@@ -1,0 +1,16 @@
+.schedule-create.schedule-collapsible{padding:0!important;overflow:hidden;border-radius:26px}
+.schedule-collapse-head{width:100%;min-height:84px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:18px;border:0;background:transparent;color:#f5f6f7;text-align:left;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.schedule-collapse-copy{display:flex;flex-direction:column;gap:5px;min-width:0}
+.schedule-collapse-copy strong{font-size:24px;line-height:1.05;font-weight:800;letter-spacing:-.03em}
+.schedule-collapse-copy small{font-size:13px;line-height:1.25;color:#858b94;font-weight:600}
+.schedule-collapse-arrow{width:42px;height:42px;flex:0 0 42px;border-radius:14px;display:grid;place-items:center;background:#171a1e;border:1px solid #30343a;color:#ff4b16;font-size:28px;line-height:1;transition:transform .28s ease,background .2s ease,border-color .2s ease}
+.schedule-collapse-head:active .schedule-collapse-arrow{transform:scale(.93)}
+.schedule-collapse-body{max-height:1900px;opacity:1;overflow:hidden;transition:max-height .38s cubic-bezier(.22,.8,.22,1),opacity .22s ease}
+.schedule-collapse-inner{padding:0 24px 24px}
+.schedule-collapsible:not(.is-collapsed) .schedule-collapse-head{border-bottom:1px solid rgba(255,255,255,.06)}
+.schedule-collapsible:not(.is-collapsed) .schedule-collapse-arrow{background:rgba(255,74,18,.10);border-color:rgba(255,74,18,.35)}
+.schedule-collapsible.is-collapsed .schedule-collapse-body{max-height:0;opacity:0;pointer-events:none}
+.schedule-collapsible.is-collapsed .schedule-collapse-head{min-height:76px}
+.schedule-collapsible.is-collapsed{box-shadow:0 12px 34px rgba(0,0,0,.18)}
+@media(max-width:640px){.schedule-collapse-head{padding:18px 20px}.schedule-collapse-inner{padding:0 20px 20px}.schedule-collapse-copy strong{font-size:22px}.schedule-collapse-arrow{width:40px;height:40px;flex-basis:40px}}
+@media(prefers-reduced-motion:reduce){.schedule-collapse-body,.schedule-collapse-arrow{transition:none!important}}
