@@ -1,4 +1,4 @@
-const CACHE='denisfit-v19.6.0';
+const CACHE='denisfit-v19.7.0';
 const SHELL=[
   '/',
   '/styles.css?v=18.2.0',
@@ -10,6 +10,7 @@ const SHELL=[
   '/schedule-week-v184.css?v=18.4.0',
   '/program-template-v186.css?v=18.6.0',
   '/trainer-diary-v187.css?v=18.7.0',
+  '/client-workflow-v191.css?v=19.1.0',
   '/app.js?v=18.2.0',
   '/enhancements-v174.js?v=18.2.0',
   '/online-v180.js?v=18.2.0',
@@ -19,7 +20,7 @@ const SHELL=[
   '/program-template-v186.js?v=18.6.0',
   '/trainer-diary-v188.js?v=18.8.0',
   '/trainer-progress-v190.js?v=19.0.0',
-  '/client-card-v190.js?v=19.0.0',
+  '/client-workflow-v191.js?v=19.1.0',
   '/schedule-collapse-v183.js?v=18.3.0',
   '/schedule-week-v185.js?v=18.5.0',
   '/vendor/supabase.min.js?v=18.2.0',
@@ -43,21 +44,15 @@ self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET')return;
   const url=new URL(event.request.url);
   if(url.origin!==self.location.origin)return;
-
   if(url.pathname.startsWith('/journal/'))return;
-
   if(url.pathname.startsWith('/workout-journal-v2/')){
-    if(event.request.mode==='navigate'){
-      event.respondWith(Promise.resolve(Response.redirect(new URL('/journal/',self.location.origin).href,302)));
-    }
+    if(event.request.mode==='navigate')event.respondWith(Promise.resolve(Response.redirect(new URL('/journal/',self.location.origin).href,302)));
     return;
   }
-
   if(event.request.mode==='navigate'){
     event.respondWith(fetch(event.request,{cache:'no-store'}).catch(()=>caches.match('/')));
     return;
   }
-
   event.respondWith(caches.match(event.request).then(hit=>hit||fetch(event.request).then(response=>{
     if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy)).catch(()=>{})}
     return response;
