@@ -1,19 +1,21 @@
-const CACHE='denisfit-v18.1.0';
+const CACHE='denisfit-v18.2.0';
 const SHELL=[
   '/',
-  '/styles.css?v=18.1.0',
-  '/enhancements-v174.css?v=18.1.0',
-  '/online-v180.css?v=18.1.0',
-  '/online-v181.css?v=18.1.0',
-  '/app.js?v=18.1.0',
-  '/enhancements-v174.js?v=18.1.0',
-  '/online-v180.js?v=18.1.0',
-  '/online-v181.js?v=18.1.0',
-  '/vendor/supabase.min.js?v=18.1.0',
-  '/manifest.webmanifest?v=18.1.0',
-  '/assets/hero-main.jpg?v=18.1.0',
-  '/assets/hero-coach.png?v=18.1.0',
-  '/assets/icon-192.png?v=18.1.0'
+  '/styles.css?v=18.2.0',
+  '/enhancements-v174.css?v=18.2.0',
+  '/online-v180.css?v=18.2.0',
+  '/online-v181.css?v=18.2.0',
+  '/design-v182.css?v=18.2.0',
+  '/app.js?v=18.2.0',
+  '/enhancements-v174.js?v=18.2.0',
+  '/online-v180.js?v=18.2.0',
+  '/online-v181.js?v=18.2.0',
+  '/library-v182.js?v=18.2.0',
+  '/vendor/supabase.min.js?v=18.2.0',
+  '/manifest.webmanifest?v=18.2.0',
+  '/assets/hero-main.jpg?v=18.2.0',
+  '/assets/hero-coach.png?v=18.2.0',
+  '/assets/icon-192.png?v=18.2.0'
 ];
 
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()))});
