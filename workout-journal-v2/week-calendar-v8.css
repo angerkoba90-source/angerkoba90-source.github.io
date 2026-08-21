@@ -1,0 +1,40 @@
+/* Full week schedule: 7 days visible at once */
+#calendar{overflow:hidden}
+#calendar .top{padding:0 2px 5px;align-items:center}
+#calendar .top .eyebrow{font-size:8px;letter-spacing:.08em}
+#calendar .top h1{font-size:23px;margin:2px 0;line-height:1}
+#calendar .top .sub{font-size:9px}
+#calendar .top .vibe{font-size:19px;letter-spacing:2px}
+#calendar .week-head{grid-template-columns:34px 1fr 34px;gap:4px;padding:0 0 5px}
+#calendar .week-head button{width:34px;height:32px;border-radius:10px;font-size:18px}
+#calendar .week-title b{font-size:12px}
+#calendar .week-title span{font-size:8px}
+#calendar .calendar-wrap{width:auto;margin:0 -5px;border-radius:12px;overflow:hidden}
+#calendar .cal-head,#calendar .cal-row{grid-template-columns:24px repeat(7,minmax(0,1fr));width:100%}
+#calendar .cal-head div{min-width:0;min-height:36px;font-size:7px;line-height:1;overflow:hidden}
+#calendar .cal-head b{font-size:10px;margin-top:2px}
+#calendar .cal-head .today b{width:20px;height:20px;font-size:10px}
+#calendar .cal-time{font-size:6.5px;padding-top:4px;min-width:0}
+#calendar .slot{height:28px;min-width:0;padding:1px}
+#calendar .event{inset:1px;border-radius:5px;padding:2px 1px;font-size:6.2px;line-height:1.02;letter-spacing:-.01em;white-space:normal;word-break:break-word;display:flex;align-items:center;justify-content:center;text-align:center}
+#calendar .legend{gap:8px;padding:5px 2px 0;font-size:8px}
+#calendar .legend i{width:6px;height:6px;margin-right:3px}
+#calendar .fun-strip{display:none}
+@media(max-width:390px){
+  #calendar .calendar-wrap{margin:0 -7px}
+  #calendar .cal-head,#calendar .cal-row{grid-template-columns:22px repeat(7,minmax(0,1fr))}
+  #calendar .cal-head div{font-size:6.5px}
+  #calendar .cal-head b{font-size:9px}
+  #calendar .event{font-size:5.8px}
+}
+@media(max-height:720px){
+  #calendar .top{padding-bottom:3px}
+  #calendar .top h1{font-size:20px}
+  #calendar .top .sub,#calendar .top .vibe{display:none}
+  #calendar .week-head{padding-bottom:3px}
+  #calendar .week-head button{height:28px}
+  #calendar .cal-head div{min-height:31px}
+  #calendar .slot{height:24px}
+  #calendar .event{font-size:5.5px}
+  #calendar .legend{padding-top:3px}
+}
