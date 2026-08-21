@@ -1,4 +1,4 @@
-const CACHE='denisfit-v18.9.0';
+const CACHE='denisfit-v19.0.0';
 const SHELL=[
   '/',
   '/styles.css?v=18.2.0',
@@ -33,26 +33,19 @@ self.addEventListener('activate',event=>{
   )).then(()=>self.clients.claim()));
 });
 
-async function bootstrapDiary(request){
-  const response=await fetch(request,{cache:'no-store'});
-  if(!response.ok)return response;
-  let html=await response.text();
-  if(!html.includes('/workout-journal-v2/bootstrap.js?v=1')){
-    html=html.replace('</body>','<script src="/workout-journal-v2/bootstrap.js?v=1"></script></body>');
-  }
-  const headers=new Headers(response.headers);
-  headers.delete('content-length');
-  headers.set('cache-control','no-store');
-  return new Response(html,{status:response.status,statusText:response.statusText,headers});
-}
-
 self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET')return;
   const url=new URL(event.request.url);
   if(url.origin!==self.location.origin)return;
 
+  // Clean journal route is intentionally outside service-worker handling.
+  if(url.pathname.startsWith('/journal/'))return;
+
+  // Old diary links are redirected immediately instead of bootstrapping a second app/SW.
   if(url.pathname.startsWith('/workout-journal-v2/')){
-    if(event.request.mode==='navigate')event.respondWith(bootstrapDiary(event.request).catch(()=>fetch(event.request,{cache:'no-store'})));
+    if(event.request.mode==='navigate'){
+      event.respondWith(Promise.resolve(Response.redirect(new URL('/journal/',self.location.origin).href,302)));
+    }
     return;
   }
 
