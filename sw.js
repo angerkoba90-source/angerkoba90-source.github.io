@@ -1,4 +1,4 @@
-const CACHE='denisfit-v18.7.0';
+const CACHE='denisfit-v18.8.0';
 const SHELL=[
   '/',
   '/styles.css?v=18.2.0',
@@ -23,7 +23,8 @@ const SHELL=[
   '/assets/icon-192.png?v=18.2.0',
   '/workout-journal-v2/week-calendar-v8.css?v=8',
   '/workout-journal-v2/workout-editor-v4.js?v=7',
-  '/workout-journal-v2/manual-exercises-v9.js?v=9'
+  '/workout-journal-v2/manual-exercises-v9.js?v=9',
+  '/workout-journal-v2/compact-template-v10.js?v=10'
 ];
 
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()))});
@@ -36,6 +37,7 @@ async function injectWorkoutEditor(request){
   if(!html.includes('week-calendar-v8.css?v=8'))html=html.replace('</head>','<link rel="stylesheet" href="/workout-journal-v2/week-calendar-v8.css?v=8"></head>');
   if(!html.includes('workout-editor-v4.js?v=7'))html=html.replace('</body>','<script src="/workout-journal-v2/workout-editor-v4.js?v=7"></script></body>');
   if(!html.includes('manual-exercises-v9.js?v=9'))html=html.replace('</body>','<script src="/workout-journal-v2/manual-exercises-v9.js?v=9"></script></body>');
+  if(!html.includes('compact-template-v10.js?v=10'))html=html.replace('</body>','<script src="/workout-journal-v2/compact-template-v10.js?v=10"></script></body>');
   const headers=new Headers(response.headers);
   headers.delete('content-length');
   headers.set('cache-control','no-store');
