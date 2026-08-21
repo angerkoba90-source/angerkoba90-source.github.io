@@ -1,0 +1,122 @@
+name: Validate DenisFit production final
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/validate-denisfit-production-v4.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Static checks
+        run: |
+          set -euo pipefail
+          node --check app.js
+          node --check vendor/supabase.min.js
+          test "$(wc -c < app.js)" -gt 150000
+          test "$(wc -c < styles.css)" -gt 40000
+          test "$(wc -c < vendor/supabase.min.js)" -gt 100000
+          grep -q 'signInAnonymously' app.js
+          grep -q 'claim-invite' app.js
+          grep -q 'create_client_pass' app.js
+          grep -q 'Отправить ссылку' app.js
+          ! grep -q 'Поделиться Pass' app.js
+          grep -q '/app.js?v=17.2.0' index.html
+          grep -q '/styles.css?v=17.2.0' index.html
+          grep -q '/vendor/supabase.min.js?v=17.2.0' index.html
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Final Chromium E2E
+        env:
+          JOIN_URL: https://angerkoba90-source.github.io/join/08e358fe-8f9e-4f6c-9025-e6f521a9c5be?v=e2e-final-1720
+        run: |
+          cat > denisfit-final-e2e.mjs <<'EOF'
+          import { chromium } from 'playwright';
+          import fs from 'node:fs';
+          const report={version:'17.2.0',checked_at:new Date().toISOString(),status:'running',checks:{}};
+          const pass=(n,d)=>report.checks[n]={status:'pass',details:d};
+          const fail=(n,e)=>report.checks[n]={status:'fail',details:String(e?.message||e)};
+          let browser;
+          try{
+            browser=await chromium.launch({headless:true});
+
+            const trainer=await browser.newContext();
+            const tp=await trainer.newPage();
+            const terr=[]; tp.on('pageerror',e=>terr.push(e.message));
+            const rr=await tp.goto('https://angerkoba90-source.github.io/?prod=final-1720',{waitUntil:'networkidle',timeout:60000});
+            if(!rr||rr.status()!==200)throw new Error(`root HTTP ${rr?.status()}`);
+            await tp.getByRole('button',{name:'Вход тренера'}).waitFor({state:'visible',timeout:20000});
+            const bodyBg=await tp.evaluate(()=>getComputedStyle(document.body).backgroundColor);
+            if(!bodyBg||bodyBg==='rgba(0, 0, 0, 0)')throw new Error('production CSS missing');
+            await tp.getByRole('button',{name:'Вход тренера'}).click();
+            await tp.locator('#trainerAuthEmail').waitFor({state:'visible'});
+            await tp.locator('#trainerAuthPassword').waitFor({state:'visible'});
+            if(terr.length)throw new Error(`trainer pageerror: ${terr.join('|')}`);
+            pass('trainer_landing','HTTP 200, CSS active, trainer login panel opens');
+            await trainer.close();
+
+            const client=await browser.newContext();
+            const cp=await client.newPage();
+            const cerr=[]; cp.on('pageerror',e=>cerr.push(e.message));
+            const jr=await cp.goto(process.env.JOIN_URL,{waitUntil:'domcontentloaded',timeout:60000});
+            if(!jr||![200,404].includes(jr.status()))throw new Error(`join HTTP ${jr?.status()}`);
+            const name=cp.locator('#stableJoinName'); await name.waitFor({state:'visible',timeout:30000});
+            const label=(await cp.locator('label[for="stableJoinName"]').textContent())?.trim();
+            if(!label?.includes('Как к тебе обращаться'))throw new Error(`wrong join label: ${label}`);
+            if(await cp.locator('#trainerAuthEmail').isVisible()||await cp.locator('#trainerAuthPassword').isVisible())throw new Error('trainer credentials shown to client');
+            pass('client_join_screen','only client name is requested; trainer email/password hidden');
+
+            await name.fill('E2E Production Final Client');
+            await cp.locator('#stableJoinSubmit').click();
+            await cp.locator('#roleBadge').filter({hasText:'КЛИЕНТ'}).waitFor({state:'visible',timeout:30000});
+            await cp.locator('#main h1').waitFor({state:'visible',timeout:30000});
+            await cp.waitForFunction(()=>document.querySelector('#main')?.innerText.trim().length>0,null,{timeout:30000});
+            const mainText=(await cp.locator('#main').innerText()).trim();
+            if(mainText.includes('Ошибка'))throw new Error(`client dashboard error: ${mainText.slice(0,300)}`);
+            if(!mainText.includes('Привет')&&!mainText.includes('Твой прогресс'))throw new Error(`unexpected dashboard: ${mainText.slice(0,300)}`);
+            const keys=await cp.evaluate(()=>Object.keys(localStorage));
+            if(!keys.some(k=>k.includes('auth-token')))throw new Error(`auth session not persisted: ${keys.join(',')}`);
+            pass('client_claim','anonymous auth + claim-invite + client dashboard completed');
+
+            await cp.reload({waitUntil:'networkidle',timeout:60000});
+            await cp.locator('#roleBadge').filter({hasText:'КЛИЕНТ'}).waitFor({state:'visible',timeout:30000});
+            await cp.locator('#main h1').waitFor({state:'visible',timeout:30000});
+            if(await cp.locator('#stableJoinName').isVisible().catch(()=>false))throw new Error('join form returned after reload');
+            pass('session_persistence','same-browser client session survives full reload');
+
+            const sw=await cp.evaluate(async()=>{
+              if(!('serviceWorker' in navigator))return 'unsupported';
+              const r=await Promise.race([navigator.serviceWorker.ready,new Promise((_,rej)=>setTimeout(()=>rej(new Error('sw timeout')),15000))]);
+              return r.active?.scriptURL||'ready';
+            });
+            if(!String(sw).includes('/sw.js'))throw new Error(`service worker not ready: ${sw}`);
+            pass('service_worker',String(sw));
+
+            const resources=await cp.evaluate(()=>performance.getEntriesByType('resource').map(x=>x.name));
+            for(const n of ['/styles.css?v=17.2.0','/app.js?v=17.2.0','/vendor/supabase.min.js?v=17.2.0'])if(!resources.some(x=>x.includes(n)))throw new Error(`missing same-origin asset ${n}`);
+            pass('local_assets','core CSS/JS dependencies are same-origin GitHub Pages assets');
+            if(cerr.length)throw new Error(`client pageerror: ${cerr.join('|')}`);
+            await client.close();
+            report.status='pass';
+          }catch(e){report.status='fail';fail('browser_e2e',e);process.exitCode=1}
+          finally{if(browser)await browser.close().catch(()=>{});fs.writeFileSync('production-validation.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2))}
+          EOF
+          node ./denisfit-final-e2e.mjs
+      - name: Save report
+        if: always()
+        run: |
+          rm -f denisfit-final-e2e.mjs
+          test -f production-validation.json || printf '{"version":"17.2.0","status":"fail","checks":{"workflow":{"status":"fail","details":"report missing"}}}\n' > production-validation.json
+          git config user.name 'DenisFit Validation'
+          git config user.email 'angerkoba90@gmail.com'
+          git add production-validation.json
+          if ! git diff --cached --quiet; then git commit -m 'Record final DenisFit production validation v17.2.0'; git push; fi
