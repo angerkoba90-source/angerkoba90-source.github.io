@@ -9,8 +9,19 @@ const {chromium}=require('playwright-core');
   const pageErrors=[];
   page.on('pageerror',e=>pageErrors.push(String(e)));
   page.on('console',msg=>{if(msg.type()==='error')pageErrors.push(msg.text())});
-  await page.setContent(`<!doctype html><html><body><main id="main"></main><nav><button data-page="schedule">Расписание</button></nav></body></html>`);
+  await page.setContent(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><main id="main"></main><nav><button data-page="schedule">Расписание</button></nav></body></html>`);
+  await page.addStyleTag({content:fs.readFileSync('trainer-diary-v187.css','utf8')});
   await page.evaluate(()=>{
+    const sessionMap=new Map();
+    Object.defineProperty(window,'sessionStorage',{
+      configurable:true,
+      value:{
+        setItem:(k,v)=>sessionMap.set(String(k),String(v)),
+        getItem:k=>sessionMap.has(String(k))?sessionMap.get(String(k)):null,
+        removeItem:k=>sessionMap.delete(String(k)),
+        clear:()=>sessionMap.clear()
+      }
+    });
     window.__calls=[];
     window.__scheduleClicks=0;
     window.__state={assignmentMode:'exists'};
@@ -102,8 +113,8 @@ const {chromium}=require('playwright-core');
   if(exercises!==2)throw new Error(`Expected 2 diary exercises, got ${exercises}`);
   const firstValues=await page.locator('.dfd-exercise').first().locator('input').evaluateAll(nodes=>nodes.map(n=>n.value));
   if(firstValues.join(',')!=='45,50,50')throw new Error(`Previous weights not prefilled: ${firstValues.join(',')}`);
-  const widthOk=await page.evaluate(()=>document.documentElement.scrollWidth<=390);
-  if(!widthOk)throw new Error(`Mobile layout overflow: ${await page.evaluate(()=>document.documentElement.scrollWidth)}px`);
+  const width=await page.evaluate(()=>document.documentElement.scrollWidth);
+  if(width>390)throw new Error(`Mobile layout overflow: ${width}px`);
 
   await page.locator('.dfd-exercise').first().locator('input').nth(0).fill('50');
   await page.locator('.dfd-exercise').first().locator('input').nth(1).fill('55');
