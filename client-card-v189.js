@@ -10,10 +10,10 @@ if(!db)return;
 
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let lastClientId='';
 let scheduled=false;
-let loadingKey='';
+let loadingClient='';
 
 function toast(text,error=false){
   let el=$('#dfccToast');
@@ -30,11 +30,12 @@ function currentClientId(){
   try{return sessionStorage.getItem('df_v189_client')||sessionStorage.getItem('df_v188_client')||''}catch{return ''}
 }
 function dedupeOnlineToggle(){
-  const save=$('#saveClientPlan');if(!save)return;
+  if(!$('#saveClientPlan'))return;
   const toggles=$$('label.online-toggle').filter(x=>/Онлайн ведение/i.test(x.textContent||''));
   if(toggles.length<=1)return;
   const checked=toggles.some(x=>$('input[type="checkbox"]',x)?.checked);
-  const keep=toggles[0];const input=$('input[type="checkbox"]',keep);if(input&&checked)input.checked=true;
+  const keep=toggles[0],input=$('input[type="checkbox"]',keep);
+  if(input&&checked)input.checked=true;
   toggles.slice(1).forEach(x=>x.remove());
 }
 function renameAddButton(){
@@ -45,15 +46,15 @@ function programsSection(){
 }
 function clearLegacyProgramCards(title){
   if(!title)return;
-  let n=title.nextElementSibling;
-  while(n&&n.id!=='deleteClient'){
-    const next=n.nextElementSibling;
-    if(n.id!=='dfClientTemplatesManager')n.remove();
-    n=next;
+  let node=title.nextElementSibling;
+  while(node&&node.id!=='deleteClient'){
+    const next=node.nextElementSibling;
+    if(node.id!=='dfClientTemplatesManager')node.remove();
+    node=next;
   }
 }
 async function trainer(){
-  const s=await db.auth.getSession();const u=s.data.session?.user;
+  const s=await db.auth.getSession(),u=s.data.session?.user;
   if(!u||u.is_anonymous)return null;
   const r=await db.from('user_roles').select('role').eq('user_id',u.id).maybeSingle();
   return r.data?.role==='trainer'?u:null;
@@ -82,14 +83,15 @@ async function enhanceClientCard(){
   if(!$('#saveClientPlan')||!$('#assignFromClient'))return;
   dedupeOnlineToggle();renameAddButton();
   const title=programsSection(),cid=currentClientId();if(!title||!cid)return;
-  const key=cid+'|'+document.body.dataset.dfccVersion;if(loadingKey===key&&$('#dfClientTemplatesManager'))return;
-  loadingKey=key;
+  if(loadingClient===cid&&!$('#dfClientTemplatesManager'))return;
+  if($('#dfClientTemplatesManager'))return;
+  loadingClient=cid;
   try{
     const u=await trainer();if(!u)return;
     const rows=await loadPrograms(u.id,cid);
     if(!document.contains(title)||currentClientId()!==cid)return;
     renderManager(title,rows,u.id,cid);
-  }catch(e){console.error('client-card-v189',e)}
+  }catch(e){console.error('client-card-v189',e)}finally{loadingClient=''}
 }
 function schedule(){
   if(scheduled)return;scheduled=true;
@@ -97,7 +99,7 @@ function schedule(){
 }
 document.addEventListener('click',e=>{
   const c=e.target.closest?.('[data-client]');if(c?.dataset.client)remember(c.dataset.client);
-  if(e.target.closest?.('#addTemplateFromClient')||e.target.closest?.('[data-client-template]'))setTimeout(schedule,120);
+  if(e.target.closest?.('#addTemplateFromClient')||e.target.closest?.('[data-client-template]'))setTimeout(schedule,160);
 },true);
 const obs=new MutationObserver(schedule);
 obs.observe(document.documentElement,{childList:true,subtree:true});
