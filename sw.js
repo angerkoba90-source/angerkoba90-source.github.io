@@ -1,4 +1,4 @@
-const CACHE='denisfit-v18.2.1';
+const CACHE='denisfit-v18.2.2';
 const SHELL=[
   '/',
   '/styles.css?v=18.2.0',
@@ -25,7 +25,7 @@ async function injectWorkoutEditor(request){
   const response=await fetch(request,{cache:'no-store'});
   if(!response.ok)return response;
   let html=await response.text();
-  if(!html.includes('workout-editor-v4.js'))html=html.replace('</body>','<script src="/workout-journal-v2/workout-editor-v4.js?v=4"></script></body>');
+  if(!html.includes('workout-editor-v4.js?v=5'))html=html.replace('</body>','<script src="/workout-journal-v2/workout-editor-v4.js?v=5"></script></body>');
   const headers=new Headers(response.headers);
   headers.delete('content-length');
   headers.set('cache-control','no-store');
