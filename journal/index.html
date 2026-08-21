@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#090a0c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Дневник тренировок</title>
+<link rel="stylesheet" href="/journal/journal-v12.css?v=12">
+</head>
+<body>
+<div class="app">
+  <section id="calendar" class="screen active">
+    <header class="top"><div><div class="eyebrow">WEEK SCHEDULE</div><h1>Неделя</h1><div class="sub">Тапни на день и время</div></div></header>
+    <div class="week-head"><button id="prevWeek">‹</button><div class="week-title"><b id="weekLabel"></b><span id="weekRange"></span></div><button id="nextWeek">›</button></div>
+    <div class="calendar-wrap"><div id="calHead" class="cal-head"></div><div id="calBody"></div></div>
+    <div class="legend"><span><i class="dot planned"></i>запланировано</span><span><i class="dot done"></i>выполнено</span></div>
+  </section>
+
+  <section id="templates" class="screen">
+    <header class="top"><div><div class="eyebrow">WORKOUT TEMPLATES</div><h1>Шаблоны</h1><div class="sub">Свои упражнения и количество подходов</div></div></header>
+    <div class="panel compact-panel"><button id="newTemplate" class="btn">+ Новый шаблон</button></div>
+    <div id="templateList"></div>
+  </section>
+
+  <section id="progress" class="screen">
+    <header class="top"><div><div class="eyebrow">EXERCISE PROGRESS</div><h1>Прогресс</h1><div class="sub">История каждого упражнения</div></div></header>
+    <div id="exerciseList"></div>
+  </section>
+
+  <section id="history" class="screen">
+    <header class="top"><div><div class="eyebrow">WORKOUT HISTORY</div><h1>История</h1></div></header>
+    <div id="historyList"></div>
+  </section>
+
+  <section id="exerciseDetail" class="screen">
+    <button id="backProgress" class="back">←</button>
+    <div id="detailBody" class="detail"></div>
+  </section>
+</div>
+
+<nav class="nav">
+  <button data-go="calendar" class="active"><b>▦</b>Календарь</button>
+  <button data-go="templates"><b>▤</b>Шаблоны</button>
+  <button data-go="progress"><b>↗</b>Прогресс</button>
+  <button data-go="history"><b>◷</b>История</button>
+</nav>
+<div id="modal"></div>
+<script defer src="/journal/journal-v12.js?v=12"></script>
+</body>
+</html>
