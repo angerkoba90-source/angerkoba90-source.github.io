@@ -29,6 +29,7 @@ jobs:
           node --check client-workflow-v191.js
           node --check client-workflow-v192.js
           node --check client-card-v201.js
+          node --check schedule-client-v202.js
           node --check program-template-v186.js
           node --check schedule-week-v185.js
           node --check schedule-collapse-v183.js
@@ -41,19 +42,21 @@ jobs:
           grep -q 'trainer-progress-v190.js?v=19.0.0' index.html
           grep -q 'client-workflow-v192.js?v=19.8.0' index.html
           grep -q 'client-card-v201.js?v=20.1.0' index.html
+          grep -q 'schedule-client-v202.js?v=20.2.0' index.html
           ! grep -q 'client-program-delete-v200.js' index.html
-          grep -q '>20.1</div>' index.html
-          grep -q '/sw.js?v=20.1.0' index.html
+          grep -q '>20.2</div>' index.html
+          grep -q '/sw.js?v=20.2.0' index.html
           ! grep -q 'client-card-v190.js' index.html
           ! grep -q 'client-card-v189.js' index.html
           ! grep -q 'trainer-diary-v187.js' index.html
-          grep -q "denisfit-v20.1.0" sw.js
+          grep -q "denisfit-v20.2.0" sw.js
           grep -q 'client-card-v201.js?v=20.1.0' sw.js
+          grep -q 'schedule-client-v202.js?v=20.2.0' sw.js
           ! grep -q 'client-program-delete-v200.js' sw.js
           grep -q "url.pathname.endsWith('.js')" sw.js
           grep -q "url.pathname.endsWith('.css')" sw.js
           grep -q "fetch(request,{cache:'no-store'})" sw.js
-          grep -q 'release=20.1.0' denisfit-update.html
+          grep -q 'release=20.2.0' denisfit-update.html
 
       - name: Verify frozen standalone journal
         run: |
@@ -89,6 +92,12 @@ jobs:
           test -n "$CHROME_PATH"
           CHROME_PATH="$CHROME_PATH" node .github/tests/client-card-v201.spec.js
 
+      - name: Run schedule client v202 integration test
+        run: |
+          CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
+          test -n "$CHROME_PATH"
+          CHROME_PATH="$CHROME_PATH" node .github/tests/schedule-client-v202.spec.js
+
       - name: Run progression start-state test
         run: |
           CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
@@ -99,6 +108,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: denisfit-v201-mobile
+          name: denisfit-v202-mobile
           path: denisfit-v188-mobile.png
           if-no-files-found: ignore
