@@ -11,9 +11,7 @@ const normal=s=>String(s||'').trim().toLocaleLowerCase('ru-RU');
 
 function syncLegacyCatalog(){
   try{
-    if(typeof EXDB!=='undefined'&&Array.isArray(EXDB)){
-      EXDB.splice(0,EXDB.length,...customExercises.map(x=>({name:x.name,type:'Своё',brand:'',group:x.group||'Без группы'})));
-    }
+    if(typeof EXDB!=='undefined'&&Array.isArray(EXDB))EXDB.splice(0,EXDB.length,...customExercises.map(x=>({name:x.name,type:'Своё',brand:'',group:x.group||'Без группы'})));
   }catch(e){console.warn('manual catalog sync',e)}
 }
 function saveCustom(){
@@ -39,7 +37,7 @@ function removeSeededDefaults(){
 function pickerStyles(){
   if(document.getElementById('manualExerciseStyles'))return;
   const style=document.createElement('style');style.id='manualExerciseStyles';style.textContent=`
-  .nav{grid-template-columns:repeat(4,1fr)!important}
+  .nav{grid-template-columns:repeat(4,1fr)!important}.nav [data-go="library"],#library{display:none!important}
   .manual-ex-overlay{position:fixed;inset:0;z-index:140;background:#000c;display:flex;align-items:flex-end;justify-content:center}
   .manual-ex-sheet{width:min(430px,100%);max-height:88dvh;overflow:auto;background:#17191d;border-radius:28px 28px 0 0;padding:12px 16px calc(22px + env(safe-area-inset-bottom));border-top:1px solid #343941}
   .manual-ex-sheet h2{margin:4px 0 4px}.manual-ex-sheet .manual-sub{font-size:11px;color:#8d929a;margin-bottom:14px}
@@ -49,16 +47,16 @@ function pickerStyles(){
   `;document.head.appendChild(style);
 }
 
-function hideBaseUi(){
+function patchStaticUi(){
   pickerStyles();
-  const baseBtn=document.querySelector('.nav [data-go="library"]');
-  if(baseBtn){baseBtn.style.display='none';baseBtn.setAttribute('aria-hidden','true');baseBtn.tabIndex=-1}
-  const library=document.getElementById('library');if(library)library.classList.add('hidden');
-  const tplSub=document.querySelector('#templates .top .sub');if(tplSub)tplSub.textContent='Создавай свои упражнения и собирай тренировки';
-  const pick=document.getElementById('pickExercise');if(pick)pick.textContent='+ Добавить упражнение';
-  const add=document.getElementById('addFromDb');if(add)add.textContent='+ Добавить упражнение';
+  const desired='Создавай свои упражнения и собирай тренировки';
+  const tplSub=document.querySelector('#templates .top .sub');if(tplSub&&tplSub.textContent!==desired)tplSub.textContent=desired;
+}
+function patchModalUi(){
+  const pick=document.getElementById('pickExercise');if(pick&&pick.textContent!=='+ Добавить упражнение')pick.textContent='+ Добавить упражнение';
+  const add=document.getElementById('addFromDb');if(add&&add.textContent!=='+ Добавить упражнение')add.textContent='+ Добавить упражнение';
   const tplSelected=document.querySelector('#tplSelected .sub');if(tplSelected&&/баз/i.test(tplSelected.textContent))tplSelected.textContent='Добавь упражнения вручную';
-  document.querySelectorAll('.sheet h2').forEach(h=>{if(/База упражнений/i.test(h.textContent))h.textContent='Мои упражнения'});
+  document.querySelectorAll('#modal .sheet h2').forEach(h=>{if(/База упражнений/i.test(h.textContent))h.textContent='Мои упражнения'});
 }
 
 function openManualPicker(onPick){
@@ -84,17 +82,12 @@ function openManualPicker(onPick){
   draw();setTimeout(()=>overlay.querySelector('#manualExName')?.focus(),60);
 }
 
-function installManualPicker(){
-  try{openDbPicker=openManualPicker}catch(e){console.warn('manual picker override',e)}
-}
+function installManualPicker(){try{openDbPicker=openManualPicker}catch(e){console.warn('manual picker override',e)}}
 
-removeSeededDefaults();
-syncLegacyCatalog();
-installManualPicker();
-hideBaseUi();
+removeSeededDefaults();syncLegacyCatalog();installManualPicker();patchStaticUi();patchModalUi();
 try{if(typeof renderTemplates==='function')renderTemplates()}catch{}
 
-const observer=new MutationObserver(()=>hideBaseUi());
-observer.observe(document.body,{childList:true,subtree:true});
-window.addEventListener('pageshow',()=>{removeSeededDefaults();syncLegacyCatalog();installManualPicker();hideBaseUi()});
+const modal=document.getElementById('modal');
+if(modal)new MutationObserver(()=>patchModalUi()).observe(modal,{childList:true,subtree:true});
+window.addEventListener('pageshow',()=>{removeSeededDefaults();syncLegacyCatalog();installManualPicker();patchStaticUi();patchModalUi()});
 })();
