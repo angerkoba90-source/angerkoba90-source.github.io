@@ -27,7 +27,7 @@ jobs:
           node --check client-workflow-v191.js
           node --check client-workflow-v192.js
           node --check client-card-v201.js
-          node --check schedule-client-v202.js
+          node --check schedule-client-v208.js
           node --check nutrition-off-v203.js
           node --check client-directions-v205.js
           node --check client-personal-calendar-v207.js
@@ -40,14 +40,17 @@ jobs:
         run: |
           grep -q 'client-directions-v205.js?v=20.5.0' index.html
           grep -q 'client-personal-calendar-v207.js?v=20.7.0' index.html
+          grep -q 'schedule-client-v208.js?v=20.8.0' index.html
+          ! grep -q 'schedule-client-v202.js?v=20.2.0' index.html
           ! grep -q 'client-calendar-v206.js?v=20.6.0' index.html
           grep -q '#dfdClientProgress{display:none!important}' index.html
-          grep -q '>20.7</div>' index.html
-          grep -q '/sw.js?v=20.7.0' index.html
-          grep -q "denisfit-v20.7.0" sw.js
+          grep -q '>20.8</div>' index.html
+          grep -q '/sw.js?v=20.8.0' index.html
+          grep -q "denisfit-v20.8.0" sw.js
+          grep -q 'schedule-client-v208.js?v=20.8.0' sw.js
+          ! grep -q 'schedule-client-v202.js?v=20.2.0' sw.js
           grep -q 'client-personal-calendar-v207.js?v=20.7.0' sw.js
-          ! grep -q 'client-calendar-v206.js?v=20.6.0' sw.js
-          grep -q 'release=20.7.0' denisfit-update.html
+          grep -q 'release=20.8.0' denisfit-update.html
       - name: Verify frozen standalone journal
         run: |
           while read -r expected path; do
@@ -73,10 +76,10 @@ jobs:
         run: |
           CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
           CHROME_PATH="$CHROME_PATH" node .github/tests/client-card-v201.spec.js
-      - name: Run schedule client v202 integration test
+      - name: Run schedule template picker v208 integration test
         run: |
           CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
-          CHROME_PATH="$CHROME_PATH" node .github/tests/schedule-client-v202.spec.js
+          CHROME_PATH="$CHROME_PATH" node .github/tests/schedule-client-v208.spec.js
       - name: Run nutrition removal v203 regression test
         run: |
           CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
