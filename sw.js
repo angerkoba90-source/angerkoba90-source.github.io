@@ -1,4 +1,4 @@
-const CACHE='denisfit-v18.2.0';
+const CACHE='denisfit-v18.2.1';
 const SHELL=[
   '/',
   '/styles.css?v=18.2.0',
@@ -20,10 +20,28 @@ const SHELL=[
 
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});
+
+async function injectWorkoutEditor(request){
+  const response=await fetch(request,{cache:'no-store'});
+  if(!response.ok)return response;
+  let html=await response.text();
+  if(!html.includes('workout-editor-v4.js'))html=html.replace('</body>','<script src="/workout-journal-v2/workout-editor-v4.js?v=4"></script></body>');
+  const headers=new Headers(response.headers);
+  headers.delete('content-length');
+  headers.set('cache-control','no-store');
+  return new Response(html,{status:response.status,statusText:response.statusText,headers});
+}
+
 self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET')return;
   const url=new URL(event.request.url);if(url.origin!==self.location.origin)return;
-  if(event.request.mode==='navigate'){event.respondWith(fetch(event.request,{cache:'no-store'}).catch(()=>caches.match('/')));return}
+  if(event.request.mode==='navigate'){
+    if(url.pathname==='/workout-journal-v2/'||url.pathname==='/workout-journal-v2/index.html'){
+      event.respondWith(injectWorkoutEditor(event.request).catch(()=>fetch(event.request,{cache:'no-store'})));
+      return;
+    }
+    event.respondWith(fetch(event.request,{cache:'no-store'}).catch(()=>caches.match('/')));return;
+  }
   event.respondWith(caches.match(event.request).then(hit=>hit||fetch(event.request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy)).catch(()=>{})}return response})))
 });
 self.addEventListener('push',event=>{let data={};try{data=event.data?event.data.json():{}}catch{data={body:event.data?.text()||''}}event.waitUntil(self.registration.showNotification(data.title||'DenisFit',{body:data.body||'',tag:data.tag||'denisfit',icon:'/assets/icon-192.png',badge:'/assets/icon-192.png',data:{url:data.url||'/'}}))});
