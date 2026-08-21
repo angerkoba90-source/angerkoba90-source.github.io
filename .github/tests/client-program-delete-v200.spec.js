@@ -11,6 +11,13 @@ const {chromium}=require('playwright-core');
 
   await page.setContent('<!doctype html><html><body><main id="main"><button id="clientBtn" data-client="client-1">Дарья</button></main></body></html>');
   await page.evaluate(()=>{
+    const store=new Map();
+    Object.defineProperty(window,'sessionStorage',{configurable:true,value:{
+      setItem:(k,v)=>store.set(String(k),String(v)),
+      getItem:k=>store.get(String(k))||null,
+      removeItem:k=>store.delete(String(k)),
+      clear:()=>store.clear()
+    }});
     window.confirm=()=>true;
     window.__programs=[
       {id:'p1',trainer_id:'trainer-1',client_id:'client-1',name:'Ноги',description:'Шаблон ног',active:true,created_at:'2026-08-20T10:00:00Z'},
