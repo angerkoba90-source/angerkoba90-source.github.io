@@ -133,6 +133,8 @@ function scheduleEnhance(){
   requestAnimationFrame(enhance);
 }
 
+document.addEventListener('pointerdown',rememberScheduleContext,true);
+document.addEventListener('mousedown',rememberScheduleContext,true);
 document.addEventListener('click',rememberScheduleContext,true);
 document.addEventListener('click',e=>{
   if(e.target?.closest?.('[data-page]')&&!e.target.closest('[data-page="schedule"]'))clearDiaryContext();
