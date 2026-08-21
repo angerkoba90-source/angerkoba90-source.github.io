@@ -1,0 +1,237 @@
+name: DenisFit online coaching v18.0
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/denisfit-online-v180.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch DenisFit app
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          p=Path('app.js')
+          s=p.read_text()
+
+          def need(old,label):
+              if old not in s:
+                  raise SystemExit(f'{label}: marker not found')
+
+          old="let user=null, profile=null, role='client', coachingMode='mixed', page='home', currentWorkoutId=null, selectedClient=null, demo=false, lastTestClientCredentials=null;"
+          new="let user=null, profile=null, role='client', coachingMode='mixed', onlineAccess=false, page='home', currentWorkoutId=null, selectedClient=null, demo=false, lastTestClientCredentials=null;"
+          need(old,'globals'); s=s.replace(old,new,1)
+
+          old="function navItems(){if(role==='trainer')return [['home','⌂','Главная'],['schedule','▦','Расписание'],['clients','◎','Клиенты'],['programs','▤','Программы'],['library','▤','Библиотека'],['profile','●','Профиль']];const base=[['home','⌂','Главная']];if(coachingMode==='mixed')base.push(['programs','▤','Мои программы']);base.push(['progress','↗','Прогресс'],['meals','◉','Питание'],['profile','●','Профиль']);return base}"
+          new="function navItems(){if(role==='trainer')return [['home','⌂','Главная'],['schedule','▦','Расписание'],['clients','◎','Клиенты'],['programs','▤','Программы'],['online','◆','Онлайн'],['library','▤','Библиотека'],['profile','●','Профиль']];const base=[['home','⌂','Главная']];if(coachingMode==='mixed')base.push(['programs','▤','Мои программы']);if(onlineAccess)base.push(['online','◆','Онлайн']);base.push(['progress','↗','Прогресс'],['meals','◉','Питание'],['profile','●','Профиль']);return base}"
+          need(old,'navItems'); s=s.replace(old,new,1)
+
+          old="async function go(p){page=p;renderNav();loading();try{if(role==='trainer'){if(p==='home')await trainerHome();else if(p==='schedule')await trainerSchedule();else if(p==='clients')await trainerClients();else if(p==='programs')await trainerPrograms();else if(p==='library')await trainerLibrary();else await profilePage()}else{if(p==='home')await clientHome();else if(p==='programs')await clientProgramsPage();else if(p==='progress')await progressPage();else if(p==='meals')await mealsPage();else if(p==='library')await clientLibrary();else await profilePage()}}catch(e){console.error(e);$('main').innerHTML=card('Ошибка',`<p class=\"muted\">${esc(e.message||e)}</p>`)}}"
+          new="async function go(p){page=p;renderNav();loading();try{if(role==='trainer'){if(p==='home')await trainerHome();else if(p==='schedule')await trainerSchedule();else if(p==='clients')await trainerClients();else if(p==='programs')await trainerPrograms();else if(p==='online')await trainerOnlinePage();else if(p==='library')await trainerLibrary();else await profilePage()}else{if(p==='home')await clientHome();else if(p==='programs')await clientProgramsPage();else if(p==='online')await clientOnlinePage();else if(p==='progress')await progressPage();else if(p==='meals')await mealsPage();else if(p==='library')await clientLibrary();else await profilePage()}}catch(e){console.error(e);$('main').innerHTML=card('Ошибка',`<p class=\"muted\">${esc(e.message||e)}</p>`)}}"
+          need(old,'go'); s=s.replace(old,new,1)
+
+          old="sb.from('trainer_clients').select('coaching_mode').eq('client_id',user.id).eq('status','active').limit(1).maybeSingle()"
+          if s.count(old)<2: raise SystemExit('client relation selectors missing')
+          s=s.replace(old,"sb.from('trainer_clients').select('coaching_mode,online_access').eq('client_id',user.id).eq('status','active').limit(1).maybeSingle()",2)
+
+          old="if(p.error)throw p.error;profile=p.data;coachingMode=cm.data?.coaching_mode||'mixed';"
+          new="if(p.error)throw p.error;profile=p.data;coachingMode=cm.data?.coaching_mode||'mixed';onlineAccess=Boolean(cm.data?.online_access);"
+          need(old,'authenticated client online access'); s=s.replace(old,new,1)
+
+          old="if(role==='trainer')await ensureBuiltinLibrary();else{const cm=await sb.from('trainer_clients').select('coaching_mode,online_access').eq('client_id',user.id).eq('status','active').limit(1).maybeSingle();if(!cm.error&&cm.data?.coaching_mode)coachingMode=cm.data.coaching_mode}"
+          new="if(role==='trainer')await ensureBuiltinLibrary();else{const cm=await sb.from('trainer_clients').select('coaching_mode,online_access').eq('client_id',user.id).eq('status','active').limit(1).maybeSingle();if(!cm.error&&cm.data){if(cm.data.coaching_mode)coachingMode=cm.data.coaching_mode;onlineAccess=Boolean(cm.data.online_access)}}"
+          need(old,'legacy client online access'); s=s.replace(old,new,1)
+
+          old="select('client_id,status,client_category,coaching_notes,client_features,created_at,weekly_sessions')"
+          new="select('client_id,status,client_category,coaching_notes,client_features,created_at,weekly_sessions,online_access')"
+          need(old,'trainer clients select'); s=s.replace(old,new,1)
+
+          manual_and_clients=r'''async function createManualClientFromTrainer(){
+  const name=$('manualClientName')?.value.trim()||'';
+  const weekly=Number($('manualClientWeekly')?.value||0);
+  const online=Boolean($('manualClientOnline')?.checked);
+  if(!name)return toast('Укажи имя клиента',true);
+  if(!Number.isInteger(weekly)||weekly<0||weekly>14)return toast('Проверь количество тренировок в неделю',true);
+  const btn=$('saveManualClient');if(btn){btn.disabled=true;btn.textContent='Добавляю...'}
+  try{
+    const {data,error}=await sb.functions.invoke('create-manual-client',{body:{name,weekly_sessions:weekly,online_access:online}});
+    if(error)throw error;if(data?.error)throw new Error(data.error);
+    toast('Клиент добавлен — его уже можно записывать на тренировку');
+    await trainerClients();
+  }catch(e){toast(e.message||'Не удалось добавить клиента',true);if(btn){btn.disabled=false;btn.textContent='Добавить клиента'}}
+}
+
+async function trainerClients(){
+  const clients=await getTrainerClients();
+  $('main').innerHTML=`<h1>Клиенты</h1><p class="sub">Добавляй клиента сам. Ссылку доступа можно отправить позже из его карточки.</p><button id="newManualClient" class="btn primary invite-main-button">＋ Добавить клиента</button><div id="manualClientForm" class="card manual-client-form hidden"><div class="invite-kicker">НОВЫЙ КЛИЕНТ</div><b>Добавить в базу</b><p class="small muted">Клиент сразу появится в расписании. Доступ в приложение отправишь потом.</p><div class="field"><label class="label">Имя</label><input id="manualClientName" class="input" placeholder="Например: Марина" autocomplete="off"></div><div class="field"><label class="label">Тренировок в неделю</label><input id="manualClientWeekly" class="input" type="number" min="0" max="14" value="0"></div><label class="online-toggle"><input id="manualClientOnline" type="checkbox"><span><b>Онлайн ведение</b><small>Можно включить сейчас или позже в карточке клиента.</small></span></label><button id="saveManualClient" class="btn primary">Добавить клиента</button></div><div class="client-simple-list">${clients.length?clients.map(x=>`<button class="client-btn client-simple-row ${clientUrgencyClass(x)}" data-client="${x.id}"><div><b>${esc(x.full_name||'Без имени')}</b><div class="small client-balance-line">${esc(clientBalanceText(x))}</div><div class="small muted">${Number(x.weekly_sessions||0)} трен. / неделю ${x.online_access?'· 🌐 онлайн':''}</div></div><span>→</span></button>`).join(''):'<div class="empty">Клиентов пока нет.</div>'}</div>`;
+  $('newManualClient').onclick=()=>{$('manualClientForm').classList.toggle('hidden');setTimeout(()=>$('manualClientName')?.focus(),60)};
+  $('saveManualClient').onclick=createManualClientFromTrainer;
+  document.querySelectorAll('[data-client]').forEach(b=>b.onclick=()=>clientDetail(b.dataset.client,clients.find(x=>x.id===b.dataset.client)));
+}
+function monthsWithTrainerSince'''
+
+          pattern=r"async function trainerClients\(\)\{.*?\n\}\nfunction monthsWithTrainerSince"
+          s,n=re.subn(pattern,lambda m:manual_and_clients,s,count=1,flags=re.S)
+          if n!=1: raise SystemExit(f'trainerClients replacement count {n}')
+
+          old='<div id="coachingModeHelp" class="small muted"></div></div>'
+          new='<label class="online-toggle"><input id="clientOnlineAccess" type="checkbox" ${link.online_access?\'checked\':\'\'}><span><b>Онлайн ведение</b><small>Открывает клиенту отдельный раздел с программой по неделям и БЖУ.</small></span></label><div id="coachingModeHelp" class="small muted"></div></div>'
+          need(old,'client online toggle'); s=s.replace(old,new,1)
+
+          old="update({coaching_mode,weekly_sessions,cardio_sessions_per_week,cardio_minutes})"
+          new="update({coaching_mode,weekly_sessions,cardio_sessions_per_week,cardio_minutes,online_access:Boolean($('clientOnlineAccess')?.checked)})"
+          need(old,'save client online access'); s=s.replace(old,new,1)
+
+          s=s.replace("\\n\\nЗапасной код: ${access.short_code}","",1)
+
+          old="async function getProgramTemplates(){\n  const {data,error}=await sb.from('program_templates').select('*,template_exercises(*,exercises(name))').eq('trainer_id',user.id).order('created_at');if(error)throw error;return data||[];\n}"
+          new="async function getProgramTemplates(){\n  const {data,error}=await sb.from('program_templates').select('*,template_exercises(*,exercises(name))').eq('trainer_id',user.id).eq('online_only',false).order('created_at');if(error)throw error;return data||[];\n}"
+          need(old,'standard templates filter'); s=s.replace(old,new,1)
+
+          start=s.index('async function clientProgramsPage(){')
+          end=s.index('\nasync function showClientProgramDetail',start)
+          chunk=s[start:end]
+          marker=".eq('client_id',user.id).eq('active',true).order('created_at',{ascending:false})"
+          if marker not in chunk: raise SystemExit('client programs filter marker missing')
+          chunk=chunk.replace(marker,".eq('client_id',user.id).eq('active',true).eq('online_only',false).order('created_at',{ascending:false})",1)
+          s=s[:start]+chunk+s[end:]
+
+          old="sb.from('training_programs').select('id,name,description,active').eq('trainer_id',user.id).eq('client_id',id).eq('active',true)"
+          new="sb.from('training_programs').select('id,name,description,active').eq('trainer_id',user.id).eq('client_id',id).eq('active',true).eq('online_only',false)"
+          need(old,'client detail standard program filter'); s=s.replace(old,new,1)
+
+          old="$('finishTemplateEdit').onclick=()=>trainerPrograms('templates');"
+          new="$('finishTemplateEdit').onclick=()=>t.online_only?trainerOnlinePage():trainerPrograms('templates');"
+          need(old,'template finish routing'); s=s.replace(old,new,1)
+
+          online_functions=r'''
+async function trainerOnlinePage(){
+  const [clients,tQ]=await Promise.all([
+    getTrainerClients(),
+    sb.from('program_templates').select('id,name,description,online_week_number,created_at,template_exercises(id)').eq('trainer_id',user.id).eq('online_only',true).order('online_week_number').order('created_at',{ascending:false})
+  ]);
+  if(tQ.error)throw tQ.error;
+  const onlineClients=clients.filter(x=>x.online_access),templates=tQ.data||[];
+  const weeks=Array.from({length:6},(_,i)=>i+1);
+  $('main').innerHTML=`<h1>Онлайн ведение</h1><p class="sub">Шесть недель программы, шаблоны упражнений и БЖУ клиентов.</p><div class="card online-hero"><div class="list-row"><div><b>Шаблоны по неделям</b><div class="small muted">Создай отдельный шаблон для каждой недели или несколько вариантов.</div></div><span class="pill">6 недель</span></div><button id="newOnlineTemplate" class="btn primary">＋ Создать шаблон недели</button></div><div id="templateEditor"></div>${weeks.map(w=>{const rows=templates.filter(t=>Number(t.online_week_number)===w);return `<div class="online-template-week"><div class="online-template-week-head"><h3>${w} неделя</h3><button class="btn inline secondary" data-new-online-template-week="${w}">＋ Шаблон</button></div><div class="online-template-list">${rows.length?rows.map(t=>`<div class="card"><div class="list-row"><div><b>${esc(t.name)}</b><div class="small muted">${esc(t.description||'Онлайн-шаблон')} · ${t.template_exercises?.length||0} упр.</div></div><span class="pill">Неделя ${w}</span></div><button class="btn secondary" data-edit-online-template="${t.id}">Редактировать</button><button class="btn danger" data-delete-online-template="${t.id}">Удалить</button></div>`).join(''):'<div class="online-empty-week">Шаблонов пока нет.</div>'}</div></div>`}).join('')}<div class="section-title">Клиенты онлайн</div><div class="client-simple-list">${onlineClients.length?onlineClients.map(c=>`<button class="client-btn" data-online-client="${c.id}"><div class="online-client-row"><div><b>🌐 ${esc(c.full_name||'Клиент')}</b><div class="small muted">Настроить недели и БЖУ</div></div><span>→</span></div></button>`).join(''):'<div class="empty">Включи «Онлайн ведение» в карточке нужного клиента.</div>'}</div>`;
+  const openCreate=w=>openOnlineTemplateCreate(w||1);
+  $('newOnlineTemplate').onclick=()=>openCreate(1);
+  document.querySelectorAll('[data-new-online-template-week]').forEach(b=>b.onclick=()=>openCreate(Number(b.dataset.newOnlineTemplateWeek)));
+  document.querySelectorAll('[data-edit-online-template]').forEach(b=>b.onclick=async()=>{const ex=await listExercises();openTemplateEditor(b.dataset.editOnlineTemplate,ex)});
+  document.querySelectorAll('[data-delete-online-template]').forEach(b=>b.onclick=async()=>{if(!confirm('Удалить онлайн-шаблон? Уже назначенные клиентам недели останутся.'))return;const id=b.dataset.deleteOnlineTemplate;const d=await sb.from('template_exercises').delete().eq('template_id',id);if(d.error)return toast(d.error.message,true);const q=await sb.from('program_templates').delete().eq('id',id).eq('trainer_id',user.id);if(q.error)return toast(q.error.message,true);toast('Шаблон удалён');trainerOnlinePage()});
+  document.querySelectorAll('[data-online-client]').forEach(b=>b.onclick=()=>trainerOnlineClient(b.dataset.onlineClient));
+}
+
+async function openOnlineTemplateCreate(week=1){
+  const target=$('templateEditor');if(!target)return;
+  target.innerHTML=`<div class="card template-create-card"><div class="invite-kicker">ОНЛАЙН · НЕДЕЛЯ ${week}</div><b>Новый шаблон</b><div class="field"><label class="label">Неделя</label><select id="onlineTemplateWeek" class="input">${Array.from({length:6},(_,i)=>`<option value="${i+1}" ${i+1===week?'selected':''}>${i+1} неделя</option>`).join('')}</select></div><div class="field"><label class="label">Название</label><input id="onlineTemplateName" class="input" placeholder="Например: Неделя 1 · База"></div><div class="field"><label class="label">Описание</label><input id="onlineTemplateDesc" class="input" placeholder="Цель недели / комментарий"></div><button id="createOnlineTemplate" class="btn primary">Создать и добавить упражнения</button></div>`;
+  target.scrollIntoView({behavior:'smooth',block:'start'});
+  $('createOnlineTemplate').onclick=async()=>{const name=$('onlineTemplateName').value.trim(),w=Number($('onlineTemplateWeek').value);if(!name)return toast('Введите название шаблона',true);const q=await sb.from('program_templates').insert({trainer_id:user.id,name,description:$('onlineTemplateDesc').value.trim(),online_only:true,online_week_number:w}).select('id').single();if(q.error)return toast(q.error.message,true);const ex=await listExercises();openTemplateEditor(q.data.id,ex)};
+}
+
+async function trainerOnlineClient(clientId){
+  const clients=await getTrainerClients(),c=clients.find(x=>x.id===clientId);if(!c)return trainerOnlinePage();
+  const [tQ,pQ,nQ]=await Promise.all([
+    sb.from('program_templates').select('id,name,description,online_week_number').eq('trainer_id',user.id).eq('online_only',true).order('created_at',{ascending:false}),
+    sb.from('training_programs').select('id,name,description,online_week_number,created_at').eq('trainer_id',user.id).eq('client_id',clientId).eq('online_only',true).eq('active',true).order('created_at',{ascending:false}),
+    sb.from('client_nutrition_targets').select('protein_g,fat_g,carbs_g').eq('trainer_id',user.id).eq('client_id',clientId).maybeSingle()
+  ]);
+  for(const q of [tQ,pQ,nQ])if(q.error)throw q.error;
+  const templates=tQ.data||[],programs=pQ.data||[],macro=nQ.data||{};
+  $('main').innerHTML=`<button id="backOnlineTrainer" class="btn inline ghost">← Онлайн ведение</button><h1>${esc(c.full_name||'Клиент')}</h1><p class="sub">Онлайн-программа на 6 недель.</p><div class="section-title">Питание · БЖУ</div><div class="card"><div class="online-macro-grid edit"><label>Белки, г<input id="onlineProtein" class="input" inputmode="decimal" value="${macro.protein_g??''}"></label><label>Жиры, г<input id="onlineFat" class="input" inputmode="decimal" value="${macro.fat_g??''}"></label><label>Углеводы, г<input id="onlineCarbs" class="input" inputmode="decimal" value="${macro.carbs_g??''}"></label></div><button id="saveOnlineMacros" class="btn primary">Сохранить БЖУ</button></div><div class="section-title">Моя программа тренировки</div>${Array.from({length:6},(_,i)=>{const w=i+1,p=programs.find(x=>Number(x.online_week_number)===w),rows=templates.filter(x=>Number(x.online_week_number)===w);return `<div class="card"><div class="list-row"><div><b>${w} неделя</b><div class="small muted">${p?`Назначено: ${esc(p.name)}`:'Программа ещё не назначена'}</div></div><span class="online-status ${p?'ready':''}">${p?'готово':'не задано'}</span></div><div class="field"><label class="label">Шаблон недели</label><select id="onlineAssignTemplate${w}" class="input"><option value="">Выбери шаблон</option>${rows.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('')}</select></div><button class="btn ${p?'secondary':'primary'}" data-assign-online-week="${w}">${p?'Заменить шаблон':'Добавить шаблон'}</button></div>`}).join('')}`;
+  $('backOnlineTrainer').onclick=trainerOnlinePage;
+  $('saveOnlineMacros').onclick=async()=>{const vals={protein_g:n($('onlineProtein').value)||0,fat_g:n($('onlineFat').value)||0,carbs_g:n($('onlineCarbs').value)||0};if(Object.values(vals).some(v=>v<0))return toast('БЖУ не могут быть отрицательными',true);const q=await sb.from('client_nutrition_targets').upsert({trainer_id:user.id,client_id:clientId,...vals,updated_at:new Date().toISOString()},{onConflict:'trainer_id,client_id'});if(q.error)return toast(q.error.message,true);toast('БЖУ сохранены')};
+  document.querySelectorAll('[data-assign-online-week]').forEach(b=>b.onclick=async()=>{const w=Number(b.dataset.assignOnlineWeek),tid=$(`onlineAssignTemplate${w}`).value;if(!tid)return toast('Выбери шаблон недели',true);const q=await sb.rpc('assign_online_template',{p_template_id:tid,p_client_id:clientId});if(q.error)return toast(q.error.message,true);toast(`Неделя ${w} назначена`);trainerOnlineClient(clientId)});
+}
+
+async function clientOnlinePage(){
+  if(!onlineAccess){$('main').innerHTML=`<h1>Онлайн ведение</h1><div class="empty">Онлайн-доступ не включён тренером.</div>`;return}
+  const [pQ,nQ]=await Promise.all([
+    sb.from('training_programs').select('id,name,description,online_week_number,created_at').eq('client_id',user.id).eq('online_only',true).eq('active',true).order('created_at',{ascending:false}),
+    sb.from('client_nutrition_targets').select('protein_g,fat_g,carbs_g').eq('client_id',user.id).limit(1).maybeSingle()
+  ]);
+  if(pQ.error)throw pQ.error;if(nQ.error)throw nQ.error;
+  const programs=pQ.data||[],macro=nQ.data||{};
+  $('main').innerHTML=`<h1>Онлайн ведение</h1><p class="sub">Твоя программа и питание от тренера.</p><div class="card online-hero"><b>🏋️ Моя программа тренировки</b><p class="small muted">Открывай нужную неделю и заноси фактический вес и количество подходов.</p></div><div class="online-week-grid">${Array.from({length:6},(_,i)=>{const w=i+1,p=programs.find(x=>Number(x.online_week_number)===w);return `<button class="online-week-card ${p?'ready':''}" data-client-online-week="${w}"><b>${w} неделя</b><small>${p?esc(p.name):'Тренер пока не добавил программу'}</small><span class="pill">${p?'Открыть':'Ожидает'}</span></button>`}).join('')}</div><div class="section-title">Питание</div><div class="card"><div class="online-macro-grid"><div class="online-macro"><span>Белки</span><strong>${Number(macro.protein_g||0)}</strong><small>г</small></div><div class="online-macro"><span>Жиры</span><strong>${Number(macro.fat_g||0)}</strong><small>г</small></div><div class="online-macro"><span>Углеводы</span><strong>${Number(macro.carbs_g||0)}</strong><small>г</small></div></div></div>`;
+  document.querySelectorAll('[data-client-online-week]').forEach(b=>b.onclick=()=>clientOnlineWeek(Number(b.dataset.clientOnlineWeek)));
+}
+
+async function clientOnlineWeek(week){
+  if(!onlineAccess)return clientOnlinePage();
+  const pQ=await sb.from('training_programs').select('id,name,description,online_week_number').eq('client_id',user.id).eq('online_only',true).eq('active',true).eq('online_week_number',week).order('created_at',{ascending:false}).limit(1).maybeSingle();
+  if(pQ.error)throw pQ.error;const program=pQ.data;
+  if(!program){$('main').innerHTML=`<button id="backOnlineClient" class="btn inline ghost">← Онлайн ведение</button><h1>${week} неделя</h1><div class="empty">Тренер пока не добавил программу на эту неделю.</div>`;$('backOnlineClient').onclick=clientOnlinePage;return}
+  const note=`Онлайн · Неделя ${week}`;
+  const [eQ,sQ]=await Promise.all([
+    sb.from('program_exercises').select('id,exercise_id,sort_order,target_sets,target_reps,target_weight,target_rpe,notes,exercises(name,category,equipment)').eq('program_id',program.id).order('sort_order'),
+    sb.from('workout_sessions').select('id').eq('client_id',user.id).eq('program_id',program.id).eq('notes',note).order('created_at',{ascending:false}).limit(1).maybeSingle()
+  ]);
+  if(eQ.error)throw eQ.error;if(sQ.error)throw sQ.error;let session=sQ.data||null,sets=[];
+  if(session){const q=await sb.from('workout_sets').select('exercise_id,set_number,weight').eq('session_id',session.id).order('set_number');if(q.error)throw q.error;sets=q.data||[]}
+  const items=eQ.data||[];
+  $('main').innerHTML=`<button id="backOnlineClient" class="btn inline ghost">← Онлайн ведение</button><h1>${week} неделя</h1><p class="sub">${esc(program.name)}${program.description?` · ${esc(program.description)}`:''}</p>${items.length?items.map((it,idx)=>{const old=sets.filter(x=>x.exercise_id===it.exercise_id),weight=old.length?Math.max(...old.map(x=>Number(x.weight||0))):'';return `<div class="card online-plan-exercise" data-online-log data-exercise="${it.exercise_id}"><div class="list-row"><div><b>${idx+1}. ${esc(it.exercises?.name||'Упражнение')}</b><div class="small muted">План: ${it.target_sets||'—'} подх. · ${esc(it.target_reps||'—')}${it.target_rpe?` · RPE ${it.target_rpe}`:''}</div></div><span class="pill">${esc(it.exercises?.category||'')}</span></div>${it.notes?`<p class="small muted">${esc(it.notes)}</p>`:''}<div class="row online-actual"><div class="field"><label class="label">Мой вес, кг</label><input class="input online-weight" inputmode="decimal" value="${weight}" placeholder="0"></div><div class="field"><label class="label">Подходы</label><input class="input online-sets" inputmode="numeric" value="${old.length||it.target_sets||3}" placeholder="3"></div></div></div>`}).join(''):'<div class="empty">В этой неделе пока нет упражнений.</div>'}<button id="saveOnlineWeek" class="btn primary">Сохранить веса и подходы</button>`;
+  $('backOnlineClient').onclick=clientOnlinePage;
+  $('saveOnlineWeek').onclick=async()=>{const rows=Array.from(document.querySelectorAll('[data-online-log]')).map(el=>({exercise_id:el.dataset.exercise,weight:n(el.querySelector('.online-weight').value),sets:n(el.querySelector('.online-sets').value)}));if(!rows.length)return toast('В неделе пока нет упражнений',true);for(const r of rows){if(r.weight==null||!inRange(r.weight,0))return toast('Проверь вес',true);if(r.sets==null||!Number.isInteger(r.sets)||r.sets<=0)return toast('Подходы должны быть целым числом больше 0',true)}if(!session){const q=await sb.from('workout_sessions').insert({client_id:user.id,program_id:program.id,performed_at:new Date().toISOString(),notes:note}).select('id').single();if(q.error)return toast(q.error.message,true);session=q.data}else{const d=await sb.from('workout_sets').delete().eq('session_id',session.id);if(d.error)return toast(d.error.message,true)}const ins=[];for(const r of rows)for(let i=1;i<=r.sets;i++)ins.push({session_id:session.id,exercise_id:r.exercise_id,set_number:i,weight:r.weight,reps:null,rpe:null});if(ins.length){const q=await sb.from('workout_sets').insert(ins);if(q.error)return toast(q.error.message,true)}toast('Неделя сохранена')};
+}
+
+'''
+          marker='async function getProgramTemplates(){'
+          if marker not in s: raise SystemExit('online insertion marker missing')
+          s=s.replace(marker,online_functions+marker,1)
+
+          p.write_text(s)
+          PY
+
+          node --check app.js
+
+      - name: Update version and shell
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          idx=Path('index.html');s=idx.read_text();s=s.replace('17.4.0','18.0.0')
+          marker='<link rel="stylesheet" href="/enhancements-v174.css?v=18.0.0">'
+          if '/online-v180.css' not in s:
+              if marker not in s: raise SystemExit('index css marker missing')
+              s=s.replace(marker,marker+'\n<link rel="stylesheet" href="/online-v180.css?v=18.0.0">',1)
+          idx.write_text(s)
+          sw=Path('sw.js');w=sw.read_text().replace('17.4.0','18.0.0')
+          if "'/online-v180.css?v=18.0.0'" not in w:
+              w=w.replace("'/styles.css?v=18.0.0',","'/styles.css?v=18.0.0',\n  '/online-v180.css?v=18.0.0',",1)
+          sw.write_text(w)
+          PY
+
+      - name: Validate production build
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check app.js
+          grep -q 'create-manual-client' app.js
+          grep -q 'trainerOnlinePage' app.js
+          grep -q 'clientOnlinePage' app.js
+          grep -q 'clientOnlineWeek' app.js
+          grep -q 'online_access' app.js
+          grep -q "eq('online_only',false)" app.js
+          grep -q 'online-v180.css?v=18.0.0' index.html
+          grep -q "denisfit-v18.0.0" sw.js
+
+      - name: Commit production release
+        shell: bash
+        run: |
+          git config user.name 'DenisFit Release'
+          git config user.email 'angerkoba90@gmail.com'
+          git add app.js index.html sw.js
+          git commit -m 'Release DenisFit online coaching v18.0.0'
+          git push
