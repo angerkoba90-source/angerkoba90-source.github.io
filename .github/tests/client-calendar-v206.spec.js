@@ -38,13 +38,18 @@ const {chromium}=require('playwright-core');
   await page.waitForSelector('#dfcCalendarBody .dfc-week');
   if((await page.locator('#main h1').innerText()).trim()!=='Календарь')throw new Error('Calendar page did not open');
 
-  const days=page.locator('[data-dfc-day]');let chosen=false;
-  for(let i=0;i<await days.count();i++){
-    await days.nth(i).click();
-    const free=page.locator('.dfc-slot.free:not([disabled]');
-    if(await free.count()){await free.first().click();chosen=true;break}
-  }
-  if(!chosen)throw new Error('No future free slot found in test week');
+  const chooseFree=async()=>{
+    const days=page.locator('[data-dfc-day]');
+    for(let i=0;i<await days.count();i++){
+      await days.nth(i).click();
+      const free=page.locator('.dfc-slot.free:not([disabled])');
+      if(await free.count()){await free.first().click();return true}
+    }
+    return false;
+  };
+  let chosen=await chooseFree();
+  if(!chosen){await page.locator('#dfcNextWeek').click();await page.waitForSelector('#dfcCalendarBody .dfc-week');chosen=await chooseFree()}
+  if(!chosen)throw new Error('No future free slot found');
   await page.waitForSelector('#dfcModal.open');
   if(!/Ягодицы \+ плечи/.test(await page.locator('#dfcProgramPick').innerText()))throw new Error('Assigned trainer template missing');
   const typeText=await page.locator('#dfcTypePick').innerText();if(!typeText.includes('Персональная')||typeText.includes('Бокс'))throw new Error('Training directions were not respected');
@@ -58,7 +63,7 @@ const {chromium}=require('playwright-core');
   const inputs=page.locator('.dfc-set input');for(let i=0;i<await inputs.count();i++)await inputs.nth(i).fill(i<3?'20':'8');
   await page.locator('#dfcSaveDiary').click();
   await page.waitForFunction(()=>window.__mock.saves.length>=1);
-  let first=await page.evaluate(()=>window.__mock.saves[0]);if(first.p_complete!==false||first.p_sets.length!==2||first.p_sets[0].weights.length!==3)throw new Error('Diary draft payload is wrong');
+  const first=await page.evaluate(()=>window.__mock.saves[0]);if(first.p_complete!==false||first.p_sets.length!==2||first.p_sets[0].weights.length!==3)throw new Error('Diary draft payload is wrong');
   await page.locator('#dfcCompleteDiary').click();
   await page.waitForFunction(()=>window.__mock.completed===true);
   await page.waitForSelector('.dfc-readonly');
