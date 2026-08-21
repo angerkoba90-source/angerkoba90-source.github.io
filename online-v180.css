@@ -1,0 +1,16 @@
+/* DenisFit v18.0 — online coaching */
+.online-hero{background:linear-gradient(145deg,rgba(202,255,50,.11),rgba(255,59,48,.08) 55%,rgba(17,20,18,.92));border-color:rgba(202,255,50,.22)}
+.online-week-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}
+.online-week-card{position:relative;min-height:112px;padding:15px;border-radius:19px;border:1px solid var(--line);background:linear-gradient(160deg,#1a1e1b,#121513);color:var(--text);text-align:left;overflow:hidden}
+.online-week-card:after{content:'';position:absolute;width:68px;height:68px;border-radius:50%;right:-22px;top:-22px;background:rgba(255,59,48,.10)}
+.online-week-card.ready{border-color:rgba(202,255,50,.36);background:linear-gradient(160deg,rgba(202,255,50,.08),#141714)}
+.online-week-card b{display:block;font-size:18px;margin-bottom:7px}.online-week-card small{display:block;color:var(--muted);line-height:1.3}.online-week-card .pill{margin-top:9px}
+.online-client-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.online-client-row>div{min-width:0}
+.online-toggle{display:flex;align-items:center;gap:12px;padding:13px 14px;border:1px solid rgba(202,255,50,.24);border-radius:16px;background:rgba(202,255,50,.045);margin:12px 0}.online-toggle input{width:22px;height:22px;accent-color:var(--lime);flex:0 0 auto}.online-toggle span{display:block}.online-toggle b{display:block}.online-toggle small{display:block;color:var(--muted);margin-top:3px;line-height:1.3}
+.online-macro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:12px 0}.online-macro{padding:15px 10px;border-radius:18px;background:#111411;border:1px solid var(--line);text-align:center}.online-macro span{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}.online-macro strong{display:block;font-size:26px;margin-top:5px;color:var(--lime)}
+.online-template-week{margin:16px 0 22px}.online-template-week-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.online-template-week-head h3{margin:0;font-size:17px}.online-template-list{display:grid;gap:8px}
+.online-plan-exercise{border-left:3px solid var(--lime)}.online-actual{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.online-status{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}.online-status:before{content:'';width:7px;height:7px;border-radius:50%;background:var(--red)}.online-status.ready:before{background:var(--lime)}
+.online-empty-week{padding:18px;border:1px dashed var(--line);border-radius:16px;color:var(--muted);text-align:center}
+.manual-client-form{border-color:rgba(202,255,50,.26);background:linear-gradient(180deg,rgba(202,255,50,.055),rgba(18,21,19,.96))}
+@media(max-width:430px){.online-macro-grid{gap:6px}.online-macro{padding:13px 6px}.online-macro strong{font-size:23px}}
