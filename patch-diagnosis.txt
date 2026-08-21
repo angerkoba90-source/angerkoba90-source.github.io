@@ -1,0 +1,7 @@
+trainerClients boundary PASS
+client action grid PASS
+client picker PASS
+handler regex PASS
+getProgramTemplates marker PASS
+trainerPrograms block PASS
+finish template line PASS
