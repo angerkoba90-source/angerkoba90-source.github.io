@@ -25,7 +25,8 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check trainer-diary-v188.js
-          node --check client-card-v189.js
+          node --check trainer-progress-v190.js
+          node --check client-card-v190.js
           node --check program-template-v186.js
           node --check schedule-week-v185.js
           node --check schedule-collapse-v183.js
@@ -34,11 +35,14 @@ jobs:
       - name: Check DenisFit release wiring
         run: |
           grep -q 'trainer-diary-v188.js?v=18.8.0' index.html
-          grep -q 'client-card-v189.js?v=18.9.0' index.html
+          grep -q 'trainer-progress-v190.js?v=19.0.0' index.html
+          grep -q 'client-card-v190.js?v=19.0.0' index.html
+          ! grep -q 'client-card-v189.js' index.html
           ! grep -q 'trainer-diary-v187.js' index.html
-          grep -q "denisfit-v19.5.0" sw.js
+          grep -q "denisfit-v19.6.0" sw.js
           grep -q 'trainer-diary-v188.js?v=18.8.0' sw.js
-          grep -q 'client-card-v189.js?v=18.9.0' sw.js
+          grep -q 'trainer-progress-v190.js?v=19.0.0' sw.js
+          grep -q 'client-card-v190.js?v=19.0.0' sw.js
 
       - name: Verify frozen standalone journal
         run: |
@@ -56,16 +60,22 @@ jobs:
           test -n "$CHROME_PATH"
           CHROME_PATH="$CHROME_PATH" node .github/tests/trainer-diary-v188.spec.js
 
-      - name: Run client card template and dedupe test
+      - name: Run client card template removal test
         run: |
           CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
           test -n "$CHROME_PATH"
-          CHROME_PATH="$CHROME_PATH" node .github/tests/client-card-v189.spec.js
+          CHROME_PATH="$CHROME_PATH" node .github/tests/client-card-v190.spec.js
+
+      - name: Run progression start-state test
+        run: |
+          CHROME_PATH=$(command -v google-chrome || command -v chromium || command -v chromium-browser)
+          test -n "$CHROME_PATH"
+          CHROME_PATH="$CHROME_PATH" node .github/tests/trainer-progress-v190.spec.js
 
       - name: Upload mobile test screenshot
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: denisfit-v188-mobile
+          name: denisfit-v190-mobile
           path: denisfit-v188-mobile.png
           if-no-files-found: ignore
