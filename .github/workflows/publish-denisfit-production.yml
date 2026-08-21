@@ -1,0 +1,67 @@
+name: Publish DenisFit production assets
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-denisfit-production.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download production assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          EDGE='https://dlaiacatpcgbzmumtggw.supabase.co/functions/v1/denisfit-app'
+          STORAGE='https://dlaiacatpcgbzmumtggw.supabase.co/storage/v1/object/public/denisfit-web-test'
+          mkdir -p vendor assets
+          curl --fail --silent --show-error --location "$EDGE/app.js?v=production-1720" -o app.js
+          curl --fail --silent --show-error --location "$EDGE/styles.css?v=production-1720" -o styles.css
+          curl --fail --silent --show-error --location 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js' -o vendor/supabase.min.js
+          curl --fail --silent --show-error --location "$STORAGE/hero-main.jpg" -o assets/hero-main.jpg
+          curl --fail --silent --show-error --location "$STORAGE/hero-coach.png" -o assets/hero-coach.png
+          curl --fail --silent --show-error --location "$STORAGE/icon-192.png" -o assets/icon-192.png
+          curl --fail --silent --show-error --location "$STORAGE/icon-512.png" -o assets/icon-512.png || cp assets/icon-192.png assets/icon-512.png
+
+      - name: Verify production assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(wc -c < app.js)" -gt 150000
+          test "$(wc -c < styles.css)" -gt 40000
+          test "$(wc -c < vendor/supabase.min.js)" -gt 100000
+          test "$(wc -c < assets/hero-main.jpg)" -gt 10000
+          grep -q 'signInAnonymously' app.js
+          grep -q 'claim-invite' app.js
+          grep -q 'create_client_pass' app.js
+          grep -q 'Пригласить клиента' app.js
+          grep -q 'Отправить ссылку' app.js
+          grep -q 'createClient' vendor/supabase.min.js
+          if grep -q 'Поделиться Pass' app.js; then
+            echo 'Old Pass share flow still present' >&2
+            exit 1
+          fi
+
+      - name: Commit production assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'DenisFit Deploy'
+          git config user.email 'angerkoba90@gmail.com'
+          git add app.js styles.css vendor/supabase.min.js assets/
+          if git diff --cached --quiet; then
+            echo 'Assets already current'
+            exit 0
+          fi
+          git commit -m 'Publish DenisFit production assets v17.2.0'
+          git push
