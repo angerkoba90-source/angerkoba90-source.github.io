@@ -1,4 +1,4 @@
-const CACHE='denisfit-journal-v1.0.0';
+const CACHE='denisfit-journal-v1.0.1';
 const ROOT='/workout-journal-v2/';
 const SHELL=[
   ROOT,
@@ -6,6 +6,7 @@ const SHELL=[
   `${ROOT}week-calendar-v8.css?v=8`,
   `${ROOT}workout-editor-v4.js?v=7`,
   `${ROOT}manual-exercises-v9.js?v=9`,
+  `${ROOT}compact-template-v10.js?v=10`,
   `${ROOT}bootstrap.js?v=1`
 ];
 
@@ -24,6 +25,7 @@ async function renderDiary(request){
   if(!html.includes('week-calendar-v8.css?v=8'))html=html.replace('</head>','<link rel="stylesheet" href="/workout-journal-v2/week-calendar-v8.css?v=8"></head>');
   if(!html.includes('workout-editor-v4.js?v=7'))html=html.replace('</body>','<script src="/workout-journal-v2/workout-editor-v4.js?v=7"></script></body>');
   if(!html.includes('manual-exercises-v9.js?v=9'))html=html.replace('</body>','<script src="/workout-journal-v2/manual-exercises-v9.js?v=9"></script></body>');
+  if(!html.includes('compact-template-v10.js?v=10'))html=html.replace('</body>','<script src="/workout-journal-v2/compact-template-v10.js?v=10"></script></body>');
   if(!html.includes('bootstrap.js?v=1'))html=html.replace('</body>','<script src="/workout-journal-v2/bootstrap.js?v=1"></script></body>');
   const headers=new Headers(response.headers);
   headers.delete('content-length');
