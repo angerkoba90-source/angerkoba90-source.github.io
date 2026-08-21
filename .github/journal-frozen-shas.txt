@@ -1,3 +1,5 @@
-ecebda31787759374f08a5faf380a26bb4569fe1  journal/index.html
+b0807ec7e7065dd2c35ae03bb9da4a878ecaba89  journal/index.html
 6ee27f44d771f32c9de7496be22a2ca07b3424a1  journal/journal-v12.css
 a2d70eae3ec18801d9b2d7ba76b942842e3bb861  journal/journal-v12.js
+4a91d45eb62dfabc07f4527a791c1e91d4a1ee73  journal/journal-v13.css
+37af396a03d5bec78f550ed3b1f24939f10654f5  journal/journal-v13.js
