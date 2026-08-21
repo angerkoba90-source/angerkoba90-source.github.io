@@ -1,4 +1,4 @@
-const CACHE='denisfit-v19.2.0';
+const CACHE='denisfit-v19.3.0';
 const SHELL=[
   '/',
   '/styles.css?v=18.2.0',
@@ -9,6 +9,7 @@ const SHELL=[
   '/schedule-collapse-v183.css?v=18.3.0',
   '/schedule-week-v184.css?v=18.4.0',
   '/program-template-v186.css?v=18.6.0',
+  '/trainer-diary-v187.css?v=18.7.0',
   '/app.js?v=18.2.0',
   '/enhancements-v174.js?v=18.2.0',
   '/online-v180.js?v=18.2.0',
@@ -16,6 +17,7 @@ const SHELL=[
   '/library-v182.js?v=18.2.0',
   '/manual-exercises-v185.js?v=18.9.0',
   '/program-template-v186.js?v=18.6.0',
+  '/trainer-diary-v187.js?v=18.7.0',
   '/schedule-collapse-v183.js?v=18.3.0',
   '/schedule-week-v185.js?v=18.5.0',
   '/vendor/supabase.min.js?v=18.2.0',
