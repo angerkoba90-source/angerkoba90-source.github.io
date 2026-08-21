@@ -27,23 +27,30 @@ jobs:
           node --check trainer-diary-v188.js
           node --check trainer-progress-v190.js
           node --check client-workflow-v191.js
+          node --check client-workflow-v192.js
           node --check program-template-v186.js
           node --check schedule-week-v185.js
           node --check schedule-collapse-v183.js
           node --check app.js
+          node --check sw.js
 
       - name: Check DenisFit release wiring
         run: |
           grep -q 'trainer-diary-v188.js?v=18.8.0' index.html
           grep -q 'trainer-progress-v190.js?v=19.0.0' index.html
-          grep -q 'client-workflow-v191.js?v=19.1.0' index.html
-          grep -q 'client-workflow-v191.css?v=19.1.0' index.html
+          grep -q 'client-workflow-v192.js?v=19.8.0' index.html
+          grep -q 'client-workflow-v191.css?v=19.8.0' index.html
+          grep -q '/sw.js?v=19.8.0' index.html
+          ! grep -q 'client-workflow-v191.js?v=19.1.0' index.html
           ! grep -q 'client-card-v190.js' index.html
           ! grep -q 'client-card-v189.js' index.html
           ! grep -q 'trainer-diary-v187.js' index.html
-          grep -q "denisfit-v19.7.0" sw.js
-          grep -q 'client-workflow-v191.js?v=19.1.0' sw.js
-          grep -q 'client-workflow-v191.css?v=19.1.0' sw.js
+          grep -q "denisfit-v19.8.0" sw.js
+          grep -q 'client-workflow-v192.js?v=19.8.0' sw.js
+          grep -q 'client-workflow-v191.js?release=19.8.0-20260821' sw.js
+          grep -q "url.pathname.endsWith('.js')" sw.js
+          grep -q "url.pathname.endsWith('.css')" sw.js
+          grep -q "fetch(request,{cache:'no-store'})" sw.js
 
       - name: Verify frozen standalone journal
         run: |
@@ -77,6 +84,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: denisfit-v191-mobile
+          name: denisfit-v198-mobile
           path: denisfit-v188-mobile.png
           if-no-files-found: ignore
