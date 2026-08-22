@@ -1,0 +1,7 @@
+/* Journal v14 — explicit add-set control during active workout */
+.jw14-add-set{width:100%;min-height:50px;margin:9px 0 1px;border:1px dashed #4a5059;border-radius:14px;background:linear-gradient(180deg,#22262c,#191c21);color:#fff;display:grid;grid-template-columns:36px 1fr 38px;align-items:center;gap:8px;padding:6px 10px;font-weight:900;transition:transform .14s ease,border-color .14s ease,background .14s ease}
+.jw14-add-set>span{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:#ff4b16;color:#fff;font-size:23px;line-height:1;box-shadow:0 7px 17px #ff4b1633}
+.jw14-add-set>b{text-align:left;font-size:13px;letter-spacing:.01em}
+.jw14-add-set>i{width:34px;height:34px;border-radius:10px;background:#0f1114;border:1px solid #343941;color:#aeb3ba;font-style:normal;font-size:13px;display:grid;place-items:center}
+.jw14-add-set:active{transform:scale(.985);border-color:#ff7040;background:#242126}
+@media(prefers-reduced-motion:reduce){.jw14-add-set{transition:none!important}}
