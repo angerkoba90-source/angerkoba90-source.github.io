@@ -9,8 +9,9 @@ const {chromium}=require('playwright-core');
   const pageErrors=[];
   page.on('pageerror',e=>pageErrors.push(String(e)));
   page.on('console',msg=>{if(msg.type()==='error')pageErrors.push(msg.text())});
-  await page.setContent(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><main id="main"></main><nav><button data-page="schedule">Расписание</button></nav></body></html>`);
-  await page.addStyleTag({content:fs.readFileSync('trainer-diary-v187.css','utf8')});
+  await page.setContent(`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body><div id="app" class="app"><header class="topbar"><div class="brand">Denis<span>Fit</span></div><div id="roleBadge" class="role-badge">ТРЕНЕР</div></header><main id="main"></main></div><nav id="nav" class="nav"><button data-page="schedule">Расписание</button></nav><div id="toast" class="toast hidden"></div></body></html>`);
+  const cssFiles=['styles.css','enhancements-v174.css','online-v180.css','online-v181.css','design-v182.css','schedule-collapse-v183.css','schedule-week-v184.css','program-template-v186.css','trainer-diary-v187.css'];
+  for(const file of cssFiles)await page.addStyleTag({content:fs.readFileSync(file,'utf8')});
   await page.evaluate(()=>{
     const sessionMap=new Map();
     Object.defineProperty(window,'sessionStorage',{
@@ -113,8 +114,12 @@ const {chromium}=require('playwright-core');
   if(exercises!==2)throw new Error(`Expected 2 diary exercises, got ${exercises}`);
   const firstValues=await page.locator('.dfd-exercise').first().locator('input').evaluateAll(nodes=>nodes.map(n=>n.value));
   if(firstValues.join(',')!=='45,50,50')throw new Error(`Previous weights not prefilled: ${firstValues.join(',')}`);
-  const width=await page.evaluate(()=>document.documentElement.scrollWidth);
-  if(width>390)throw new Error(`Mobile layout overflow: ${width}px`);
+  for(const width of [375,390,430]){
+    await page.setViewportSize({width,height:844});
+    const scrollWidth=await page.evaluate(()=>document.documentElement.scrollWidth);
+    if(scrollWidth>width)throw new Error(`Mobile layout overflow at ${width}px: ${scrollWidth}px`);
+  }
+  await page.setViewportSize({width:390,height:844});
 
   await page.locator('.dfd-exercise').first().locator('input').nth(0).fill('50');
   await page.locator('.dfd-exercise').first().locator('input').nth(1).fill('55');
@@ -140,5 +145,5 @@ const {chromium}=require('playwright-core');
   if(pageErrors.length)throw new Error(`Browser errors: ${pageErrors.join(' | ')}`);
   await page.screenshot({path:'denisfit-v188-mobile.png',fullPage:true});
   await browser.close();
-  console.log('DenisFit v188 mobile integration test: PASS');
+  console.log('DenisFit v188 production-CSS mobile integration test: PASS');
 })().catch(err=>{console.error(err);process.exit(1)});
